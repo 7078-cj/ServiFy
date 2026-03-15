@@ -5,3 +5,5 @@ db.sqlite3
 celerybeat-*
 migrations
 .vscode
+portfolios
+profiles

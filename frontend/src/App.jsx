@@ -9,6 +9,7 @@ import DashBoard from "./pages/DashBoard";
 import PrivateRoutes from "./context/PrivateRoutes";
 import { updateToken } from "./utils/auth";
 import ForgotPasswordPage from "./pages/ForgotPassword";
+import BusinessManager from "./pages/BusinessManager";
 
 
 function AppContent() {
@@ -39,6 +40,7 @@ function AppContent() {
 
         <Route element={<PrivateRoutes />}>
           <Route path="/" element={<DashBoard />} />
+          <Route path="/test" element={<BusinessManager />} />
         </Route>
 
       </Routes>

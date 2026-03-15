@@ -50,66 +50,75 @@ class BusinessDetailView(RetrieveUpdateDestroyAPIView):
         serializer.save(owner=self.request.user)
 
 class PortofolioListCreateView(ListCreateAPIView):
-    permission_classes = [IsAuthenticated]
     serializer_class = PortofolioUploadSerializer
-    
+    permission_classes = [IsAuthenticated]
+
+    def get_business(self):
+        if not hasattr(self, 'business'):
+            self.business = get_business(self)
+        return self.business
+
     def get_queryset(self):
-       
-        business = get_business(self)
-        
-        return Portofolio.objects.filter(business=business)
+        return Portofolio.objects.filter(business=self.get_business())
 
     def get_serializer(self, *args, **kwargs):
-
-        business = get_business(self)
-
         kwargs['context'] = kwargs.get('context', {})
-        kwargs['context']['business'] = business
+        kwargs['context']['business'] = self.get_business()
         
-        if 'photos' in self.request.data:
-            kwargs['data'] = self.request.data['photos']
-        
+        photos = self.request.data.getlist('photos')
+        if photos:
+            kwargs['data'] = [{'photo': photo} for photo in photos]
+            kwargs['many'] = True
+
         return super().get_serializer(*args, **kwargs)
+    
 
     def perform_create(self, serializer):
-        serializer.save()
-        
+        serializer.save(business=self.get_business())
+
+
 class PortofolioDetailView(RetrieveUpdateDestroyAPIView):
     serializer_class = PortofolioSerializer
     permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
 
+    def get_business(self):
+        if not hasattr(self, 'business'):
+            self.business = get_business(self)
+        return self.business
+
     def get_queryset(self):
-       
-        business = get_business(self)
-        
-        return Portofolio.objects.filter(business=business)
+        return Portofolio.objects.filter(business=self.get_business())
 
     def perform_update(self, serializer):
-
-        business = get_business(self)
-        
-        serializer.save(business=business)
+        serializer.save(business=self.get_business())
         
 class ReviewListCreateView(ListCreateAPIView):
     serializer_class = ReviewSerializer
     permission_classes = [IsAuthenticated]
-    
+
+    def get_business(self):
+        if not hasattr(self, 'business'):
+            self.business = get_business(self)
+        return self.business
+
     def get_queryset(self):
-        business = get_business(self)
-        return Review.objects.filter(business=business)
-    
+        return Review.objects.filter(business=self.get_business())
+
     def perform_create(self, serializer):
-        business = get_business(self)
-        serializer.save(business=business)
-        
+        serializer.save(business=self.get_business(), author=self.request.user)
+
+
 class ReviewDetailView(RetrieveUpdateDestroyAPIView):
     serializer_class = ReviewSerializer
     permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
 
+    def get_business(self):
+        if not hasattr(self, 'business'):
+            self.business = get_business(self)
+        return self.business
+
     def get_queryset(self):
-        business = get_business(self)
-        return Review.objects.filter(business=business)
+        return Review.objects.filter(business=self.get_business())
 
     def perform_update(self, serializer):
-        business = get_business(self)
-        serializer.save(business=business)
+        serializer.save(business=self.get_business(), author=self.request.user)

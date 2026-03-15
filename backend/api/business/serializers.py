@@ -2,19 +2,35 @@ from rest_framework import serializers
 from ..user.serializers import UserSerializer
 from .models import Portofolio, Review, Business
 
-# Portfolio serializers
 class PortofolioSerializer(serializers.ModelSerializer):
     class Meta:
         model = Portofolio
         fields = ['id', 'photo']
+        
+    def get_photo(self, obj):
+        if obj.photo:
+            return obj.photo   
+        return None
+
 
 class PortofolioBulkSerializer(serializers.ListSerializer):
+
     def create(self, validated_data):
         business = self.context.get('business')
-        portfolios = [Portofolio(business=business, **item) for item in validated_data]
+
+        portfolios = [
+            Portofolio(
+                business=business,
+                photo=item["photo"]
+            )
+            for item in validated_data
+        ]
+
         return Portofolio.objects.bulk_create(portfolios)
 
+
 class PortofolioUploadSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Portofolio
         fields = ['photo']
