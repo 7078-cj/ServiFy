@@ -22,7 +22,9 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['username'] = user.username
         token['role'] = user.profile.role
         token['phone'] = user.profile.phone
-        token['profile_image'] = user.profile.profile_image
+        token['profile_image'] = (
+            user.profile.profile_image.url if user.profile.profile_image else None
+        )
         
         return token
     
