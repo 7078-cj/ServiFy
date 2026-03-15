@@ -11,7 +11,6 @@ class ProfileSerializer(serializers.ModelSerializer):
             "phone",
             "profile_image",
         ]
-        read_only_fields = ["id"]
 
 class UserSerializer(serializers.ModelSerializer):
     profile = ProfileSerializer(read_only=True)
