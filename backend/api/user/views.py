@@ -12,6 +12,10 @@ from ..rate_limit.TestThrottle import TestThrottle
 from rest_framework import status
 from .utils import generate_pin, send_reset_email
 from django.core.cache import cache
+from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
+from .models import Location
+from .serializers import LocationSerializer
+from rest_framework.permissions import IsAuthenticated
 
 # Create your views here.
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -154,6 +158,30 @@ def resend_reset_code(request):
     send_reset_email(user, code)
 
     return Response({"message": "New reset code sent"})
+
+class LocationListCreateView(ListCreateAPIView):
+    serializer_class = LocationSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        return Location.objects.filter(user=self.request.user)
+    
+    def perform_create(self, serializer):
+
+        serializer.save(user=self.request.user)
+        
+class LocationDetailView(RetrieveUpdateDestroyAPIView):
+    serializer_class = LocationSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+
+        return Location.objects.filter(user=self.request.user)
+
+    def perform_update(self, serializer):
+
+        serializer.save(user=self.request.user)
+
 
 
 @api_view(['GET'])

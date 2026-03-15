@@ -3,7 +3,7 @@ from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
-from .views import registerUser, MyTokenObtainPairView, test, request_password_reset, verify_reset_code, reset_password, resend_reset_code
+from .views import registerUser, MyTokenObtainPairView, test, request_password_reset, verify_reset_code, reset_password, resend_reset_code, LocationDetailView, LocationListCreateView
 
 
 urlpatterns = [
@@ -15,5 +15,7 @@ urlpatterns = [
     path("verify-code/", verify_reset_code, name='verify_reset_code'),
     path("reset-password/", reset_password, name='reset_password'),
     path("resend-code/", resend_reset_code, name='resend_code'),
+    path('locations/', LocationListCreateView.as_view(), name='locations-list-create'),
+    path('locations/<int:pk>/', LocationDetailView.as_view(), name='locations-detail'),
     
 ]

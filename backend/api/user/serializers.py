@@ -29,3 +29,14 @@ class UserSerializer(serializers.ModelSerializer):
         )
         return user
     
+class LocationSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+    class Meta:
+        model = Profile
+        fields = [
+            "user",
+            "name",
+            "longitude",
+            "latitude"
+        ]
+    
