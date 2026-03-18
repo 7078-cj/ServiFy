@@ -1,40 +1,36 @@
 from rest_framework import serializers
 from ..user.serializers import UserSerializer
-from .models import Portofolio, Review, Business
+from .models import Portfolio, Review, Business
 
-class PortofolioSerializer(serializers.ModelSerializer):
+class PortfolioSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Portofolio
+        model = Portfolio
         fields = ['id', 'photo']
         
-    def get_photo(self, obj):
-        if obj.photo:
-            return obj.photo   
-        return None
 
 
-class PortofolioBulkSerializer(serializers.ListSerializer):
+class PortfolioBulkSerializer(serializers.ListSerializer):
 
     def create(self, validated_data):
         business = self.context.get('business')
 
         portfolios = [
-            Portofolio(
+            Portfolio(
                 business=business,
                 photo=item["photo"]
             )
             for item in validated_data
         ]
 
-        return Portofolio.objects.bulk_create(portfolios)
+        return Portfolio.objects.bulk_create(portfolios)
 
 
-class PortofolioUploadSerializer(serializers.ModelSerializer):
+class PortfolioUploadSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = Portofolio
+        model = Portfolio
         fields = ['photo']
-        list_serializer_class = PortofolioBulkSerializer
+        list_serializer_class = PortfolioBulkSerializer
 
 # Review serializer
 class ReviewSerializer(serializers.ModelSerializer):
@@ -48,7 +44,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 class BusinessSerializer(serializers.ModelSerializer):
     owner = UserSerializer(read_only=True)
     reviews = ReviewSerializer(many=True, read_only=True)
-    portfolio = PortofolioSerializer(many=True, read_only=True)
+    portfolio = PortfolioSerializer(many=True, read_only=True)
 
     class Meta:
         model = Business

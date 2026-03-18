@@ -2,9 +2,9 @@ from django.core.cache import cache
 from rest_framework.decorators import api_view, throttle_classes
 from rest_framework import viewsets, permissions
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
-from .serializers import BusinessSerializer, PortofolioUploadSerializer, PortofolioSerializer, ReviewSerializer
+from .serializers import BusinessSerializer, PortfolioUploadSerializer, PortfolioSerializer, ReviewSerializer
 from rest_framework.permissions import IsAuthenticated
-from .models import Business, Portofolio, Review
+from .models import Business, Portfolio, Review
 from .utils import get_business
 from rest_framework.exceptions import ValidationError
 
@@ -49,8 +49,8 @@ class BusinessDetailView(RetrieveUpdateDestroyAPIView):
     def perform_update(self, serializer):
         serializer.save(owner=self.request.user)
 
-class PortofolioListCreateView(ListCreateAPIView):
-    serializer_class = PortofolioUploadSerializer
+class PortfolioListCreateView(ListCreateAPIView):
+    serializer_class = PortfolioUploadSerializer
     permission_classes = [IsAuthenticated]
 
     def get_business(self):
@@ -59,7 +59,7 @@ class PortofolioListCreateView(ListCreateAPIView):
         return self.business
 
     def get_queryset(self):
-        return Portofolio.objects.filter(business=self.get_business())
+        return Portfolio.objects.filter(business=self.get_business())
 
     def get_serializer(self, *args, **kwargs):
         kwargs['context'] = kwargs.get('context', {})
@@ -77,8 +77,8 @@ class PortofolioListCreateView(ListCreateAPIView):
         serializer.save(business=self.get_business())
 
 
-class PortofolioDetailView(RetrieveUpdateDestroyAPIView):
-    serializer_class = PortofolioSerializer
+class PortfolioDetailView(RetrieveUpdateDestroyAPIView):
+    serializer_class = PortfolioSerializer
     permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
 
     def get_business(self):
@@ -87,7 +87,7 @@ class PortofolioDetailView(RetrieveUpdateDestroyAPIView):
         return self.business
 
     def get_queryset(self):
-        return Portofolio.objects.filter(business=self.get_business())
+        return Portfolio.objects.filter(business=self.get_business())
 
     def perform_update(self, serializer):
         serializer.save(business=self.get_business())

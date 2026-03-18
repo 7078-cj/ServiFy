@@ -20,7 +20,7 @@ class Business(models.Model):
         return self.name
     
 
-class Portofolio(models.Model):
+class Portfolio(models.Model):
     business = models.ForeignKey(Business, related_name='portfolio', blank=True, on_delete=models.CASCADE)
     photo = models.ImageField(upload_to="portfolios/", blank=True, null=True)
     
