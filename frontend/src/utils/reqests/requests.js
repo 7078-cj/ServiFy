@@ -53,3 +53,62 @@ export const postRequest = async (endpoint, data = {}, token = null, isForm = fa
     }
 };
 
+export const putRequest = async (endpoint, data = {}, token = null, isForm = false) => {
+    try {
+        const headers = {
+            ...(token && { Authorization: `Bearer ${token}` })
+        };
+
+        // Only set JSON header if not FormData
+        if (!isForm) {
+            headers["Content-Type"] = "application/json";
+        }
+
+        const res = await fetch(`${API}${endpoint}`, {
+            method: "PUT", // 👈 change here
+            headers,
+            body: isForm ? data : JSON.stringify(data)
+        });
+
+        if (!res.ok) {
+            const errorData = await res.json();
+            throw new Error(errorData.message || "Update failed");
+        }
+
+        return await res.json();
+
+    } catch (error) {
+        console.error("PUT REQUEST ERROR:", error);
+        throw error;
+    }
+};
+
+export const patchRequest = async (endpoint, data = {}, token = null, isForm = false) => {
+    try {
+        const headers = {
+            ...(token && { Authorization: `Bearer ${token}` })
+        };
+
+        if (!isForm) {
+            headers["Content-Type"] = "application/json";
+        }
+
+        const res = await fetch(`${API}${endpoint}`, {
+            method: "PATCH",
+            headers,
+            body: isForm ? data : JSON.stringify(data)
+        });
+
+        if (!res.ok) {
+            const errorData = await res.json();
+            throw new Error(errorData.message || "Update failed");
+        }
+
+        return await res.json();
+
+    } catch (error) {
+        console.error("PATCH REQUEST ERROR:", error);
+        throw error;
+    }
+};
+
