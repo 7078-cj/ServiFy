@@ -23,3 +23,39 @@ export default async function MapClickHandler({ lat, lng, setLocation, editMode 
         setLocation({ lat, lng, city: "", country: "", full: "" });
     }
 }
+
+export const initLocation = async (location, setLocation) => {
+    if (location?.lat && location?.lng) {
+        setUserLoc(location);
+        return;
+    }
+
+    if (user?.latitude && user?.longitude) {
+        const newLoc = {
+            lat: user.latitude,
+            lng: user.longitude,
+            city: user.location || "",
+            country: "",
+            full: user.location || "",
+        };
+        setLocation(newLoc);
+        return;
+    }
+
+    if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(
+            async (pos) => {
+                const lat = pos.coords.latitude;
+                const lng = pos.coords.longitude;
+            try {
+                var newLoc = ReverseGeolocation(lat, lng) 
+                setUserLoc(newLoc);
+                setLocation(newLoc);
+            } catch {
+                setLocation({ lat, lng, city: "", country: "", full: "" });
+            }
+        },
+            (err) => console.error("Geolocation error:", err)
+        );
+        }
+    };
