@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Map from "../components/map/MapComponent";
+import { initLocation } from "../utils/mapUtils/map";
 
 
 
@@ -50,6 +51,21 @@ function Test() {
         "longitude": 120.75869
     }
     ]
+
+    useEffect(() => {
+        
+        const fetchLocation = async () => {
+            try {
+            await initLocation(location, setLocation);
+            } catch (err) {
+            console.error("Failed to initialize location:", err);
+            }
+        };
+
+        fetchLocation();
+    }, []);
+
+
 
     return (
     <div className="h-[400px] w-full">
