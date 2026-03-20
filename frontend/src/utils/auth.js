@@ -41,19 +41,19 @@ export const registerUser = async (e, dispatch, nav) =>{
         const url = import.meta.env.VITE_API_URL
 
         let response = await fetch(
-          `${url}user/register/`,{
+        `${url}user/register/`,{
             method: "POST",
             headers:{
-              'Content-Type' : 'application/json',
-             
+            'Content-Type' : 'application/json',
+            
             },
             body :JSON.stringify({
-                                  'username' :e.target.username.value,
-                                    'email':e.target.email.value,
-                                  'password' :e.target.password.value,
-                                  
-                                  })
-          }
+                                'username' :e.target.username.value,
+                                'email':e.target.email.value,
+                                'password' :e.target.password.value,
+                                
+                                })
+        }
         )
                 
         if (response.status == 201){
