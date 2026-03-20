@@ -2,8 +2,8 @@ from django.shortcuts import render
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.response import Response
-from rest_framework.decorators import api_view, throttle_classes
-from .serializers import UserSerializer
+from rest_framework.decorators import api_view, throttle_classes, permission_classes
+from .serializers import UserSerializer, ProfileSerializer, UserProfileSerializer
 import os
 from django.conf import settings
 from rest_framework.throttling import AnonRateThrottle
@@ -16,6 +16,8 @@ from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIV
 from .models import Location
 from .serializers import LocationSerializer
 from rest_framework.permissions import IsAuthenticated
+from rest_framework import viewsets, permissions
+
 
 # Create your views here.
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -35,7 +37,7 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
 
-       
+
 @api_view(['POST'])
 def registerUser(request):
 
@@ -181,6 +183,9 @@ class LocationDetailView(RetrieveUpdateDestroyAPIView):
     def perform_update(self, serializer):
 
         serializer.save(user=self.request.user)
+        
+        
+
 
 
 
@@ -189,3 +194,25 @@ class LocationDetailView(RetrieveUpdateDestroyAPIView):
 def test(request):
     
     return Response('Hello')
+
+@api_view(['GET'])
+@throttle_classes([TestThrottle])
+@permission_classes([IsAuthenticated])
+def profile(request):
+    user = request.user
+    serializer = UserProfileSerializer(user, many=False)
+    
+    return Response(serializer.data)
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def updateProfile(request):
+    profile = request.user.profile
+    serializer = ProfileSerializer(instance=profile,data=request.data,partial=True)
+    
+    if serializer.is_valid():
+        serializer.save
+        return Response(serializer.data)
+    
+    else:
+        return Response(serializer.errors)

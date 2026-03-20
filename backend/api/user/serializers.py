@@ -11,15 +11,26 @@ class ProfileSerializer(serializers.ModelSerializer):
             "phone",
             "profile_image",
         ]
+        
+class LocationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = [
+            "name",
+            "longitude",
+            "latitude"
+        ]
+    
+
 
 class UserSerializer(serializers.ModelSerializer):
     profile = ProfileSerializer(read_only=True)
     
     class Meta:
-       model = User
-       fields = ('id', 'username', 'email', 'password', "profile")
-       extra_kwargs = {'password': {'write_only': True}}
-       
+        model = User
+        fields = ('id', 'username', 'email', 'password', "profile")
+        extra_kwargs = {'password': {'write_only': True}}
+
     def create(self, validated_data):
         user = User.objects.create_user(
             username=validated_data['username'],
@@ -29,14 +40,22 @@ class UserSerializer(serializers.ModelSerializer):
         )
         return user
     
-class LocationSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
+class UserProfileSerializer(serializers.ModelSerializer):
+    saved_locations = LocationSerializer(read_only=True)
+    profile = ProfileSerializer(read_only=True)
+    
     class Meta:
-        model = Profile
-        fields = [
-            "user",
-            "name",
-            "longitude",
-            "latitude"
-        ]
+        model = User
+        fields = ('id', 'username', 'email', 'password', "profile", "location")
+        extra_kwargs = {'password': {'write_only': True}}
+
+    def create(self, validated_data):
+        user = User.objects.create_user(
+            username=validated_data['username'],
+            email=validated_data['email'],
+            password=validated_data['password'],
+            
+        )
+        return user
+    
     
