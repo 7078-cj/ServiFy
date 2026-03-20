@@ -7,6 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from .models import Business, Portfolio, Review
 from .utils import get_business
 from rest_framework.exceptions import ValidationError
+from rest_framework.response import Response
 
 
 class IsOwnerOrReadOnly(permissions.BasePermission):
@@ -122,3 +123,9 @@ class ReviewDetailView(RetrieveUpdateDestroyAPIView):
 
     def perform_update(self, serializer):
         serializer.save(business=self.get_business(), author=self.request.user)
+        
+@api_view(["GET"])
+def businesses(request):
+    businesses = Business.objects.all()
+    serializer = BusinessSerializer(businesses, many= True)
+    return  Response(serializer.data)

@@ -23,6 +23,9 @@ class Profile(models.Model):
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='customer')
     phone = models.CharField(max_length=15, blank=True, null=True)
     profile_image = models.ImageField(upload_to="profiles/", blank=True, null=True)
+    address = models.CharField(max_length=200, blank=True, null=True)
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)
 
     def __str__(self):
         return self.user.username

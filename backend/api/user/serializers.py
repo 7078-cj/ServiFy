@@ -10,6 +10,9 @@ class ProfileSerializer(serializers.ModelSerializer):
             "role",
             "phone",
             "profile_image",
+            "address",
+            "longitude",
+            "latitude"
         ]
         
 class LocationSerializer(serializers.ModelSerializer):

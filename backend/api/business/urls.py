@@ -5,11 +5,13 @@ from .views import (
     PortfolioListCreateView,
     PortfolioDetailView,
     ReviewListCreateView,
-    ReviewDetailView
+    ReviewDetailView,
+    businesses
 )
 
 urlpatterns = [
     # Business routes
+    path('all_businesses/', businesses, name='all_business'),
     path('businesses/', BusinessListCreateView.as_view(), name='business-list-create'),
     path('businesses/<int:pk>/', BusinessDetailView.as_view(), name='business-detail'),
 
