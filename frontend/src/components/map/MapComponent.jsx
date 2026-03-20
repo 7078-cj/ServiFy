@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/map";
 import { MapEventListener } from "../../utils/mapUtils/mapEventListener";
 import { handleSearch } from "../../utils/mapUtils/map";
+import SearchInput from "../SearchInput";
 
 export default function MapComponent({ location, setLocation, Markers = [], editMode = false }) {
   const [searchQuery, setSearchQuery] = useState("");
@@ -20,23 +21,13 @@ export default function MapComponent({ location, setLocation, Markers = [], edit
       mapRef.current?.flyTo({ center: [parseFloat(location?.lng), parseFloat(location?.lat)], zoom: 16 });
   },[location])
   return (
-    <div className="h-[700px] w-full relative">
+    <div className="h-[80vh] w-full relative">
       {/* Search input */}
-      <div className="absolute top-2 left-2 z-10 flex space-x-2">
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search for a place..."
-          className="px-2 py-1 border rounded-md shadow text-sm"
-        />
-        <button
-          onClick={()=>handleSearch(searchQuery, setLocation, mapRef)}
-          className="px-3 py-1 bg-blue-500 text-white rounded-md shadow hover:bg-blue-600 text-sm"
-        >
-          Search
-        </button>
-      </div>
+      <SearchInput 
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        action={() => handleSearch(searchQuery, setLocation, mapRef)}
+      />
 
       <Map
         ref={mapRef}
