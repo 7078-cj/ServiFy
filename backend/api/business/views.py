@@ -8,6 +8,8 @@ from .models import Business, Portfolio, Review
 from .utils import get_business
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
+from django.db.models import Avg
+
 
 
 class IsOwnerOrReadOnly(permissions.BasePermission):
@@ -35,8 +37,7 @@ class BusinessListCreateView(ListCreateAPIView):
     permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
-        return Business.objects.filter(owner = self.request.user)
-    
+        return Business.objects.filter(owner=self.request.user).annotate(avg_rating=Avg('review__rate'))  
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
         
@@ -45,11 +46,10 @@ class BusinessDetailView(RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
 
     def get_queryset(self):
-        return Business.objects.filter(owner=self.request.user)
+        return Business.objects.filter(owner=self.request.user).annotate(avg_rating=Avg('review__rate'))  
 
     def perform_update(self, serializer):
         serializer.save(owner=self.request.user)
-
 class PortfolioListCreateView(ListCreateAPIView):
     serializer_class = PortfolioUploadSerializer
     permission_classes = [IsAuthenticated]
@@ -126,6 +126,6 @@ class ReviewDetailView(RetrieveUpdateDestroyAPIView):
         
 @api_view(["GET"])
 def businesses(request):
-    businesses = Business.objects.all()
-    serializer = BusinessSerializer(businesses, many= True)
-    return  Response(serializer.data)
+    businesses = Business.objects.all().annotate(avg_rating=Avg('review__rate'))
+    serializer = BusinessSerializer(businesses, many=True)
+    return Response(serializer.data)

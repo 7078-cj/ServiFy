@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from ..user.serializers import UserSerializer
 from .models import Portfolio, Review, Business
+from django.db.models import Avg
+
 
 class PortfolioSerializer(serializers.ModelSerializer):
     class Meta:
@@ -45,11 +47,17 @@ class BusinessSerializer(serializers.ModelSerializer):
     owner = UserSerializer(read_only=True)
     reviews = ReviewSerializer(many=True, read_only=True)
     portfolio = PortfolioSerializer(many=True, read_only=True)
+    average_rating = serializers.SerializerMethodField()
 
     class Meta:
         model = Business
         fields = [
             'id', 'owner', 'name', 'description',
             'address', 'latitude', 'longitude',
-            'reviews', 'portfolio'
+            'reviews', 'portfolio', 'average_rating'
         ]
+        
+    def get_average_rating(self, obj):
+        result = obj.review.aggregate(avg=Avg('rate'))
+        avg = result['avg']
+        return round(avg, 1) if avg is not None else None

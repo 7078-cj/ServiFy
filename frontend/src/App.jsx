@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import { Provider, useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
 
@@ -14,28 +14,26 @@ import Header from "./components/Header";
 
 
 function AppContent() {
-
   const dispatch = useDispatch();
   const tokens = useSelector((state) => state.auth.tokens);
+  const location = useLocation(); // add this
+
+  // add this
+  const hideHeaderRoutes = ["/login", "/register", "/forgot_password"];
+  const showHeader = !hideHeaderRoutes.includes(location.pathname);
 
   useEffect(() => {
-
     if (!tokens) return;
-
     const interval = setInterval(() => {
       updateToken(dispatch);
     }, 600000);
-
     return () => clearInterval(interval);
-
-    
   }, [tokens]);
 
   return (
-    <Router>
-      <Header/>
+    <>
+      {showHeader && <Header />}  
       <Routes>
-
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot_password" element={<ForgotPasswordPage />} />
@@ -44,16 +42,16 @@ function AppContent() {
           <Route path="/" element={<DashBoard />} />
           <Route path="/test" element={<Test />} />
         </Route>
-
       </Routes>
-
-    </Router>
+    </>
   );
 }
 
 
 export default function App() {
   return (
+    <Router>  
       <AppContent />
+    </Router>
   );
 }
