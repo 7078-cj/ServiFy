@@ -1,14 +1,13 @@
 from .models import Business
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import NotFound
 
-def get_business(self):
-    business_id = self.request.data.get('business_id')
-    if not business_id:
-        raise ValidationError({'business_id': 'This field is required.'})
-    
+def get_business(view):
+    business_pk = view.kwargs.get('business_pk')
+
+    if not business_pk:
+        raise NotFound('Business not found.')
+
     try:
-        business = Business.objects.get(id=business_id)
+        return Business.objects.get(pk=business_pk)
     except Business.DoesNotExist:
-        raise ValidationError({'business_id': 'Business not found.'})
-    
-    return business
+        raise NotFound('Business not found.')
