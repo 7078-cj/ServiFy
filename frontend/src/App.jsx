@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import { Provider, useDispatch, useSelector } from "react-redux";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -17,10 +17,18 @@ function AppContent() {
   const dispatch = useDispatch();
   const tokens = useSelector((state) => state.auth.tokens);
   const location = useLocation(); // add this
+  const [isProvider, setIsProvider] = useState(false)
 
   // add this
   const hideHeaderRoutes = ["/login", "/register", "/forgot_password"];
   const showHeader = !hideHeaderRoutes.includes(location.pathname);
+
+  const navItems = [
+    { name: "Explore", path: "/" },
+    { name: "Services", path: "/services" },
+    { name: "Bookings", path: "/bookings" },
+    { name: "Contact", path: "/contact" },
+  ];  
 
   useEffect(() => {
     if (!tokens) return;
@@ -32,7 +40,7 @@ function AppContent() {
 
   return (
     <>
-      {showHeader && <Header />}  
+      {showHeader && <Header navItems={navItems} isProvider = {isProvider} />}  
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
