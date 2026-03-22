@@ -27,7 +27,12 @@ class BusinessListCreateView(ListCreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Business.objects.filter(owner=self.request.user).annotate(avg_rating=Avg('review__rate'))
+        return (
+            Business.objects
+            .filter(owner=self.request.user)
+            .prefetch_related('review', 'portfolio', 'services', 'review__author')
+            .annotate(avg_rating=Avg('review__rate'))
+        )
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
@@ -38,7 +43,12 @@ class BusinessDetailView(RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
 
     def get_queryset(self):
-        return Business.objects.filter(owner=self.request.user).annotate(avg_rating=Avg('review__rate'))
+        return (
+            Business.objects
+            .filter(owner=self.request.user)
+            .prefetch_related('review', 'portfolio', 'services', 'review__author')
+            .annotate(avg_rating=Avg('review__rate'))
+        )
 
     def perform_update(self, serializer):
         serializer.save(owner=self.request.user)
@@ -153,6 +163,11 @@ class ServiceDetailView(RetrieveUpdateDestroyAPIView):
 
 @api_view(["GET"])
 def businesses(request):
-    businesses = Business.objects.all().annotate(avg_rating=Avg('review__rate'))
+    businesses = (
+        Business.objects
+        .all()
+        .prefetch_related('review', 'portfolio', 'services', 'review__author')
+        .annotate(avg_rating=Avg('review__rate'))
+    )
     serializer = BusinessSerializer(businesses, many=True)
     return Response(serializer.data)
