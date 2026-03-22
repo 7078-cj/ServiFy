@@ -8,6 +8,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 
 class Business(models.Model):
     owner = models.ForeignKey(User, related_name='businesses', on_delete=models.CASCADE)
+    logo = models.ImageField(upload_to="logo/", blank=True, null=True)
     name = models.CharField(max_length=200)
     description = models.CharField(max_length=1000)
 
