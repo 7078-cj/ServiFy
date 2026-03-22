@@ -1,8 +1,11 @@
 import React from 'react'
+import FilterBar from '../components/FilterBar'
 
 function DashBoard() {
   return (
-    <div>DashBoard</div>
+    <>
+      <FilterBar/>
+    </>
   )
 }
 

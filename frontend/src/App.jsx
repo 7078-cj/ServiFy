@@ -10,6 +10,7 @@ import PrivateRoutes from "./context/PrivateRoutes";
 import { updateToken } from "./utils/auth";
 import ForgotPasswordPage from "./pages/ForgotPassword";
 import Test from "./pages/Test";
+import Header from "./components/Header";
 
 
 function AppContent() {
@@ -32,7 +33,7 @@ function AppContent() {
 
   return (
     <Router>
-
+      <Header/>
       <Routes>
 
         <Route path="/login" element={<Login />} />
