@@ -68,9 +68,9 @@ function Test() {
 
 
     return (
-    <>
+    <div className="w-[1000px] h-[1000px]">
         <Map location={location} setLocation={setLocation} Markers={Businesses}/>
-    </>
+    </div>
     
     );
 }

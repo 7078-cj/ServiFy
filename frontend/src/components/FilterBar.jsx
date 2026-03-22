@@ -19,27 +19,26 @@ export default function FilterBar() {
     const [selected, setSelected] = useState({});
 
     const handleSelect = (filterLabel, option) => {
-        setSelected(prev => ({
-            ...prev,
-            [filterLabel]: option
-        }));
+        setSelected(prev => ({ ...prev, [filterLabel]: option }));
     };
 
     return (
-        <div className='w-full border-b bg-white flex items-center justify-between px-4 py-3 '>
-            <div className="flex items-center gap-3 mx-auto">
+        <div className='w-full border-b border-gray-300 bg-white px-4 py-3'>
+            {/* Scrollable filter row on mobile, centered on desktop */}
+            <div className="flex items-center gap-3 overflow-x-auto scrollbar-hide md:justify-center">
                 {filters.map((filter) => (
                     <DropdownMenu key={filter.label}>
                         <DropdownMenuTrigger asChild>
                             <Button
                                 variant="outline"
-                                className="rounded-full text-sm flex items-center gap-2 px-4 py-1.5 hover:bg-gray-100 data-[state=open]:bg-gray-100 transition"
+                                className="rounded-full text-sm flex items-center gap-2 px-4 py-1.5 
+                                        hover:bg-gray-100 data-[state=open]:bg-gray-100 
+                                        transition whitespace-nowrap flex-shrink-0"
                             >
                                 {filter.label}
                                 <ChevronDown className="w-4 h-4" />
                             </Button>
                         </DropdownMenuTrigger>
-
                         <DropdownMenuContent className="min-w-[150px]">
                             {filter.options.map((option) => (
                                 <DropdownMenuItem
