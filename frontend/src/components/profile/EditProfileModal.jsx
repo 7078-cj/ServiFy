@@ -10,6 +10,7 @@ import {
 import { Input } from "../../../components/ui/input";
 import { Label } from "../../../components/ui/label";
 
+const media_url = import.meta.env.VITE_API_MEDIA;
 export default function EditProfileModal({ open, onClose, profile, onSave }) {
     const [formData, setFormData] = useState({
         first_name: "",
@@ -17,6 +18,7 @@ export default function EditProfileModal({ open, onClose, profile, onSave }) {
         username: "",
         email: "",
         profile_image: null,
+        phone: "",
     });
     const [imagePreview, setImagePreview] = useState(null);
 
@@ -28,8 +30,9 @@ export default function EditProfileModal({ open, onClose, profile, onSave }) {
             username: profile.username || "",
             email: profile.email || "",
             profile_image: null,
+            phone: profile.profile.phone || "",
         });
-        setImagePreview(profile.profile_image || null);
+        setImagePreview(media_url + profile.profile.profile_image || null);
         }
     }, [open, profile]);
 
@@ -57,6 +60,7 @@ export default function EditProfileModal({ open, onClose, profile, onSave }) {
         data.append("last_name", formData.last_name);
         data.append("username", formData.username);
         data.append("email", formData.email);
+        data.append("phone", formData.phone);
         if (formData.profile_image) {
         data.append("profile_image", formData.profile_image);
         }
@@ -142,6 +146,15 @@ export default function EditProfileModal({ open, onClose, profile, onSave }) {
                 <Input
                 name="username"
                 value={formData.username}
+                onChange={handleChange}
+                />
+            </div>
+
+            <div>
+                <Label className="text-xs text-gray-500 mb-1 block">Phone Number</Label>
+                <Input
+                name="phone"
+                value={formData.phone}
                 onChange={handleChange}
                 />
             </div>

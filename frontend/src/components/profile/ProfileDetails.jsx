@@ -94,7 +94,7 @@ export default function ProfileDetails({profile, setModalOpen}) {
                     </span>
                     <div>
                         <p className="text-xs text-gray-400 leading-none mb-0.5">Phone number</p>
-                        <p className="font-medium">{profile.profile.phone_number}</p>
+                        <p className="font-medium">{profile.profile.phone}</p>
                     </div>
                     </div>
                 </div>
