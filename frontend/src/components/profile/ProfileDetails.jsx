@@ -1,5 +1,6 @@
 import React from 'react'
 
+const media_url = import.meta.env.VITE_API_MEDIA;
 export default function ProfileDetails({profile, setModalOpen}) {
     return (
 <div className="p-6">
@@ -8,9 +9,9 @@ export default function ProfileDetails({profile, setModalOpen}) {
             {/* LEFT SIDE */}
             <div className="flex flex-col items-center text-center border-r pr-6">
                 {/* Avatar */}
-                {profile.profile_image ? (
+                {profile.profile.profile_image ? (
                 <img
-                    src={profile.profile_image}
+                    src={media_url + profile.profile.profile_image}
                     alt="Profile"
                     className="w-40 h-40 rounded-full object-cover shadow-lg border-4"
                     style={{ borderColor: "#1a9cb0", marginTop: "-3rem" }}
@@ -82,6 +83,18 @@ export default function ProfileDetails({profile, setModalOpen}) {
                     <div>
                         <p className="text-xs text-gray-400 leading-none mb-0.5">Username</p>
                         <p className="font-medium">{profile.username}</p>
+                    </div>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm text-gray-700">
+                    <span
+                        className="inline-flex items-center justify-center w-8 h-8 rounded-md text-white text-xs font-bold shrink-0"
+                        style={{ background: "#3182ce" }}
+                    >
+                        #
+                    </span>
+                    <div>
+                        <p className="text-xs text-gray-400 leading-none mb-0.5">Phone number</p>
+                        <p className="font-medium">{profile.profile.phone_number}</p>
                     </div>
                     </div>
                 </div>

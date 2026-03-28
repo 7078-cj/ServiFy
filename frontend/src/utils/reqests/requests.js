@@ -37,6 +37,7 @@ export const postRequest = async (endpoint, data = {}, token = null, isForm = fa
         const res = await fetch(`${API}${endpoint}`, {
             method: "POST",
             headers,
+            credentials: "include", 
             body: isForm ? data : JSON.stringify(data)
         });
 

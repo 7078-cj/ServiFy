@@ -210,7 +210,7 @@ def updateProfile(request):
     serializer = ProfileSerializer(instance=profile,data=request.data,partial=True)
     
     if serializer.is_valid():
-        serializer.save
+        serializer.save()
         return Response(serializer.data)
     
     else:

@@ -211,6 +211,10 @@ CORS_ALLOWED_ORIGINS = env.list(
     default=[]
 )
 CORS_ALLOW_CREDENTIALS = True
+CSRF_TRUSTED_ORIGINS = env.list(
+    "CORS_ALLOWED_ORIGINS",
+    default=[]
+)
 
 redis_host = env.str("REDIS_HOST", default=None)
 redis_port = env.str("REDIS_PORT", default=None)

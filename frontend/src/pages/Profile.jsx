@@ -2,15 +2,28 @@ import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import EditProfileModal from "../components/profile/EditProfileModal";
 import ProfileDetails from "../components/profile/ProfileDetails";
+import { putRequest } from "../utils/reqests/requests";
 
 
 export default function Profile() {
     const { profile } = useSelector((state) => state.profile);
+    const {tokens} = useSelector((state) => state.auth);
 
     const [modalOpen, setModalOpen] = useState(false);
 
-    const handleSave = (formData) => {
-        console.log("Updating...", formData);
+    const handleSave = async (formData) => {         // ← async
+        try {
+            const updatedProfile = await putRequest(  // ← await
+                "user/profile/update",
+                formData,
+                tokens.access,
+                true
+            );
+            console.log("Profile updated:", updatedProfile);
+            setModalOpen(false);
+        } catch (error) {
+            console.error("Failed to update profile:", error);
+        }
     };
 
     if (!profile) {
