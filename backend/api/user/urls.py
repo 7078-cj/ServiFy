@@ -13,7 +13,9 @@ from .views import (registerUser,
                     LocationDetailView, 
                     LocationListCreateView,
                     profile,
-                    updateProfile)
+                    updateProfile,
+                    BookingListCreateView,
+                    BookingDetailView)
 
 
 urlpatterns = [
@@ -29,5 +31,17 @@ urlpatterns = [
     path('locations/<int:pk>/', LocationDetailView.as_view(), name='locations-detail'),
     path('profile/', profile, name='profile'),
     path('profile/update', updateProfile, name='update-profile'),
+    
+    path(
+        'services/<int:service_pk>/bookings/',
+        BookingListCreateView.as_view(),
+        name='booking-list-create'
+    ),
+    
+    path(
+        'services/<int:service_pk>/bookings/<int:pk>/',
+        BookingDetailView.as_view(),
+        name='booking-detail'
+    ),
     
 ]

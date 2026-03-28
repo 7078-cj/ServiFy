@@ -1,4 +1,4 @@
-from .models import Business
+from .models import Business, Service
 from rest_framework.exceptions import NotFound
 
 def get_business(view):
@@ -11,3 +11,14 @@ def get_business(view):
         return Business.objects.get(pk=business_pk)
     except Business.DoesNotExist:
         raise NotFound('Business not found.')
+    
+def get_service(view):
+    service_pk = view.kwargs.get('service_pk')
+
+    if not service_pk:
+        raise NotFound('Service not found.')
+
+    try:
+        return Service.objects.get(pk=service_pk)
+    except Service.DoesNotExist:
+        raise NotFound('Service not found.')

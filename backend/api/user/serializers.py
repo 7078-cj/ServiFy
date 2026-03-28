@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 
-from .models import Profile, Location
+from .models import Profile, Location, Booking
 
 class ProfileSerializer(serializers.ModelSerializer):
 
@@ -55,4 +55,22 @@ class UserProfileSerializer(serializers.ModelSerializer):
         fields = ('id', 'username', 'first_name', 'last_name', 'email', 'password', "profile", "saved_location")
         extra_kwargs = {'password': {'write_only': True}}
     
-    
+
+class BookingSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField(read_only=True)
+    service_name = serializers.CharField(source='service.name', read_only=True)
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+
+    class Meta:
+        model = Booking
+        fields = [
+            'id',
+            'user',
+            'service',
+            'service_name',
+            'date',
+            'status',
+            'status_display',
+            'created_at',
+        ]
+        read_only_fields = ['id', 'user', 'status', 'created_at']

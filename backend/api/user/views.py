@@ -3,7 +3,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, throttle_classes, permission_classes
-from .serializers import UserSerializer, ProfileSerializer, UserProfileSerializer
+from .serializers import UserSerializer, ProfileSerializer, UserProfileSerializer, BookingSerializer
 import os
 from django.conf import settings
 from rest_framework.throttling import AnonRateThrottle
@@ -13,12 +13,27 @@ from rest_framework import status
 from .utils import generate_pin, send_reset_email
 from django.core.cache import cache
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
-from .models import Location
+from .models import Location, Booking
+from ..business.models import Service
 from .serializers import LocationSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import viewsets, permissions
+from ..business.utils import get_service
+from rest_framework import viewsets, permissions
 
 
+class IsBookingOwner(permissions.BasePermission):
+    """Allow read to booking user, write only to the business owner."""
+
+    def has_object_permission(self, request, view, obj):
+        # Booking user can read and delete (cancel) their own booking
+        if request.method in permissions.SAFE_METHODS or request.method == 'DELETE':
+            return obj.user == request.user
+        
+        # Only the business owner can update (approve/reject/complete)
+        return obj.service.business.owner == request.user
+    
+    
 # Create your views here.
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
@@ -215,3 +230,38 @@ def updateProfile(request):
     
     else:
         return Response(serializer.errors)
+    
+class BookingListCreateView(ListCreateAPIView):
+    serializer_class = BookingSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_service(self):
+        if not hasattr(self, '_service'):             
+            self._service = get_service(self)           
+        return self._service
+
+    def get_queryset(self):
+        return (
+            Booking.objects
+            .filter(user=self.request.user, service=self.get_service())  
+            .select_related('user', 'service', 'service__provider')
+            .order_by('-created_at')
+        )
+
+    def perform_create(self, serializer):
+        serializer.save(                  
+            user=self.request.user,
+            service=self.get_service()
+        )
+
+
+class BookingDetailView(RetrieveUpdateDestroyAPIView):
+    serializer_class = BookingSerializer
+    permission_classes = [IsAuthenticated, IsBookingOwner]
+
+    def get_queryset(self):
+        return (
+            Booking.objects
+            .filter(user=self.request.user)
+            .select_related('user', 'service', 'service__provider')
+        )
