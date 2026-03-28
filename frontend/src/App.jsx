@@ -11,6 +11,7 @@ import { updateToken } from "./utils/auth";
 import ForgotPasswordPage from "./pages/ForgotPassword";
 import Test from "./pages/Test";
 import Header from "./components/Header";
+import Profile from "./pages/Profile";
 
 
 function AppContent() {
@@ -25,9 +26,8 @@ function AppContent() {
 
   const navItems = [
     { name: "Explore", path: "/" },
-    { name: "Services", path: "/services" },
     { name: "Bookings", path: "/bookings" },
-    { name: "Contact", path: "/contact" },
+    {name : "Profile", path: "/profile"}
   ];  
 
   useEffect(() => {
@@ -48,6 +48,7 @@ function AppContent() {
 
         <Route element={<PrivateRoutes />}>
           <Route path="/" element={<DashBoard />} />
+          <Route path="/profile" element={<Profile />} />
           <Route path="/test" element={<Test />} />
         </Route>
       </Routes>

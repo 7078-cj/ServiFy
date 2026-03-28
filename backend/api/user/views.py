@@ -196,7 +196,6 @@ def test(request):
     return Response('Hello')
 
 @api_view(['GET'])
-@throttle_classes([TestThrottle])
 @permission_classes([IsAuthenticated])
 def profile(request):
     user = request.user

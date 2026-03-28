@@ -1,38 +1,63 @@
 import { jwtDecode } from "jwt-decode";
 import { setAuth, logout } from "../features/auth/authSlice";
+import { setProfile } from "../features/profile/profileSlice";
+import { getRequest } from "./reqests/requests";
 
 const API_URL = import.meta.env.VITE_API_URL;
+
 
 
 export const loginUser = async (e, dispatch, navigate) => {
     e.preventDefault();
 
-    const response = await fetch(API_URL + "user/token/", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-            username: e.target.username.value,
-            password: e.target.password.value
-        }),
-    });
+    try {
+        const response = await fetch(API_URL + "user/token/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                username: e.target.username.value,
+                password: e.target.password.value,
+            }),
+        });
 
-    const data = await response.json();
+        const data = await response.json();
 
-    if (response.ok) {
+        if (!response.ok) {
+            console.error("Login failed:", data);
+            return;
+        }
 
-        const user = jwtDecode(data.access);
+        const tokens = data;
 
-        dispatch(setAuth({
-            tokens: data,
-            user: user
-        }));
+        const user = jwtDecode(tokens.access);
 
-        localStorage.setItem("authTokens", JSON.stringify(data));
+        dispatch(
+            setAuth({
+                tokens: tokens,
+                user: user,
+            })
+        );
+
+        // Save to localStorage
+        localStorage.setItem("authTokens", JSON.stringify(tokens));
         localStorage.setItem("user", JSON.stringify(user));
 
+        let profile = null;
+
+        try {
+            profile = await getRequest("user/profile/", tokens.access);
+        } catch (err) {
+            console.error(err);
+        }
+
+        dispatch(setProfile(profile));
+
         navigate("/");
+
+    } catch (error) {
+        console.error("Error during login:", error);
     }
 };
 
@@ -51,6 +76,9 @@ export const registerUser = async (e, dispatch, nav) =>{
                                 'username' :e.target.username.value,
                                 'email':e.target.email.value,
                                 'password' :e.target.password.value,
+                                'first_name': e.target.first_name.value,
+                                'last_name': e.target.last_name.value
+                            
                                 
                                 })
         }

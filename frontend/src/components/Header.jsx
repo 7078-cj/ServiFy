@@ -95,15 +95,6 @@ export default function Header({navItems, isProvider}) {
 
                         <span className="text-gray-200 text-sm select-none">|</span>
 
-                        {/* CTA */}
-                        <button
-                            style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-                            className="text-[0.72rem] font-semibold tracking-wide
-                                bg-blue-600 text-white px-5 py-1.5 rounded-lg
-                                hover:bg-blue-700 active:scale-95 transition-all duration-200"
-                        >
-                            Join as Provider
-                        </button>
                     </div>
                 </div>}
 

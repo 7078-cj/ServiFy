@@ -14,7 +14,7 @@ from pathlib import Path
 from datetime import timedelta
 import environ
 import os
-from celery.schedules import crontab
+from celery.schedules import crontab # pyright: ignore[reportMissingImports]
 from .scheduler import SCHEDULE
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -64,7 +64,7 @@ REST_FRAMEWORK = {
 
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
-     "DEFAULT_THROTTLE_CLASSES": [
+    "DEFAULT_THROTTLE_CLASSES": [
         "rest_framework.throttling.AnonRateThrottle",
         "rest_framework.throttling.UserRateThrottle",
     ],

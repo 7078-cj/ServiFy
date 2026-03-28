@@ -1,4 +1,4 @@
-import React, { useContext } from 'react'
+import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDispatch } from "react-redux";
 import { loginUser } from '../utils/auth';
@@ -7,55 +7,59 @@ function Login() {
   const dispatch = useDispatch()
   const nav = useNavigate()
 
-
   return (
-    <div className="flex min-h-screen bg-gray-100">
-    
+  <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 px-4">
 
-      {/* Main content */}
-      <div className="flex-1 flex justify-center items-center p-6">
-        <div className="w-full max-w-md bg-white shadow-md rounded-lg p-8">
-          <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Login</h2>
-          
-          <form onSubmit={(e)=>loginUser(e,dispatch,nav)} className="flex flex-col space-y-4">
-            <label className="flex flex-col text-gray-700 font-medium">
-              Username
-              <input
-                type="text"
-                name="username"
-                className="mt-1 px-3 py-2 border-2 border-gray-300 rounded-md outline-none focus:border-green-500 text-gray-700"
-              />
-            </label>
+    <div className="w-full max-w-md bg-white shadow-xl rounded-2xl p-8">
+      
+      <h2 className="text-3xl font-bold mb-6 text-center text-gray-800">
+        Welcome Back
+      </h2>
 
-            <label className="flex flex-col text-gray-700 font-medium">
-              Password
-              <input
-                type="password"
-                name="password"
-                className="mt-1 px-3 py-2 border-2 border-gray-300 rounded-md outline-none focus:border-green-500 text-gray-700"
-              />
-            </label>
+      <form onSubmit={(e)=>loginUser(e,dispatch,nav)} className="flex flex-col space-y-4">
 
-            <button
-              type="submit"
-              className="w-full py-2 bg-green-500 hover:bg-green-600 active:bg-green-700 rounded-md text-white font-semibold transition"
-            >
-              Login
-            </button>
-          </form>
+        <label className="flex flex-col text-sm font-medium text-gray-600">
+          Username
+          <input
+            type="text"
+            name="username"
+            className="mt-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition"
+          />
+        </label>
 
-          <p className="mt-4 text-center text-gray-600 text-sm">
-            Don't have an account?{' '}
-            <a href="/register" className="text-cyan-500 hover:underline">
-              Register
-            </a>
-            <a href="/forgot_password" className="text-cyan-500 hover:underline">
-              Forgot Password
-            </a>
-          </p>
+        <label className="flex flex-col text-sm font-medium text-gray-600">
+          Password
+          <input
+            type="password"
+            name="password"
+            className="mt-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition"
+          />
+        </label>
+
+        <div className="flex justify-end text-sm">
+          <a href="/forgot_password" className="text-blue-600 hover:underline font-medium">
+            Forgot Password?
+          </a>
         </div>
-      </div>
+
+        <button
+          type="submit"
+          className="w-full py-2.5 bg-blue-500 hover:bg-blue-600 active:bg-blue-700 rounded-lg text-white font-semibold transition shadow-md hover:shadow-lg"
+        >
+          Login
+        </button>
+
+      </form>
+
+      <p className="mt-6 text-center text-gray-500 text-sm">
+        Don’t have an account?{' '}
+        <a href="/register" className="text-blue-600 font-medium hover:underline">
+          Register
+        </a>
+      </p>
+
     </div>
+  </div>
   )
 }
 

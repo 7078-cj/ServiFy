@@ -1,12 +1,11 @@
 import React from 'react'
-import FilterBar from '../components/FilterBar'
+
 import BusinessList from '../components/business/BusinessList'
 import MapComponent from '../components/map/MapComponent'
 
 function DashBoard() {
   return (
     <>
-      <FilterBar/>
       <div className='flex flex-col lg:flex-row w-full h-[calc(100vh-124px)] relative'>
         
         {/* Left panel — full width on mobile, 45% on desktop */}
