@@ -2,7 +2,7 @@ from rest_framework import serializers
 from ..user.serializers import UserSerializer
 from .models import Portfolio, Review, Business, Service
 from django.db.models import Avg, Min, Max
-
+from ..user.serializers import BookingSerializer
 
 class PortfolioSerializer(serializers.ModelSerializer):
     class Meta:
@@ -43,10 +43,10 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 
 class ServiceSerializer(serializers.ModelSerializer):
-
+    bookings = BookingSerializer(many=True, read_only=True)
     class Meta:
         model = Service
-        fields = ['id', 'name', 'description', 'thumbnail', 'price']
+        fields = ['id', 'name', 'description', 'thumbnail', 'price','bookings']
 
 
 class BusinessSerializer(serializers.ModelSerializer):
