@@ -4,6 +4,8 @@ import EditProfileModal from "../components/profile/EditProfileModal";
 import ProfileDetails from "../components/profile/ProfileDetails";
 import { getRequest, putRequest } from "../utils/reqests/requests";
 import { setProfile } from "../features/profile/profileSlice";
+import { Button } from "../../components/ui/button";
+import AddUpdateBusinessModal from "../components/business/AddUpdateBusinessModal";
 
 
 export default function Profile() {
@@ -12,6 +14,7 @@ export default function Profile() {
     const dispatch = useDispatch();
 
     const [modalOpen, setModalOpen] = useState(false);
+    const [businessModalOpen, setBusinessModalOpen] = useState(false);
 
     const handleSave = async (formData) => {         // ← async
         try {
@@ -51,6 +54,15 @@ export default function Profile() {
         />
 
         <ProfileDetails profile={profile} setModalOpen={setModalOpen} />
+        <Button onClick={()=> setBusinessModalOpen(true)}>
+            Add Business
+        </Button>
+
+        <AddUpdateBusinessModal
+            open={businessModalOpen}
+            onClose={() => setBusinessModalOpen(false)}
+            onSave={()=> console.log('business save')}
+        />
 
         <EditProfileModal
             open={modalOpen}
