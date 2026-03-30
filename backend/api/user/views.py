@@ -221,16 +221,19 @@ def profile(request):
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 def updateProfile(request):
+    user = request.user
     profile = request.user.profile
-    serializer = ProfileSerializer(instance=profile,data=request.data,partial=True)
+    profile_serializer = ProfileSerializer(instance=profile,data=request.data,partial=True)
+    user_serializer = UserSerializer(instance=user,data=request.data,partial=True)
     
-    if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data)
+    if profile_serializer.is_valid() and user_serializer.is_valid():
+        profile_serializer.save()
+        user_serializer.save()
+        return Response(user_serializer.data)
     
     else:
-        return Response(serializer.errors)
-    
+        return Response(profile_serializer.errors | user_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 class BookingListCreateView(ListCreateAPIView):
     serializer_class = BookingSerializer
     permission_classes = [IsAuthenticated]
