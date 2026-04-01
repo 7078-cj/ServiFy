@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import EditProfileModal from "../components/profile/EditProfileModal";
 import ProfileDetails from "../components/profile/ProfileDetails";
@@ -9,6 +9,7 @@ import AddUpdateBusinessModal from "../components/business/AddUpdateBusinessModa
 import { setAllBusinesses } from "../features/business/allBusinessSlice";
 import { setBusinesses } from "../features/business/businessSlice";
 import { Plus } from "lucide-react";
+import BusinessList from "../components/business/BusinessList";
 
 export default function Profile() {
     const { profile } = useSelector((state) => state.profile);
@@ -44,6 +45,20 @@ export default function Profile() {
             console.error("Failed to save business:", error);
         }
     };
+
+    useEffect(() => {
+        const fetchUserBusinesses = async () => {
+            try {
+                const userBusinesses = await getRequest("businesses/", tokens.access);
+                dispatch(setBusinesses(userBusinesses));
+            } catch (error) {
+                console.error("Failed to fetch user businesses:", error);
+            }
+        };
+        if (tokens.access) {
+            fetchUserBusinesses();
+        }
+    }, [tokens.access]);
 
     if (!profile) {
         return (
@@ -88,9 +103,7 @@ export default function Profile() {
 
 
                 <div className="bg-white rounded-2xl p-10 text-center shadow-sm border border-gray-100">
-                    <p className="text-sm text-gray-500">
-                        You haven’t added any businesses yet.
-                    </p>
+                    <BusinessList businesses={businesses} />
                 </div>
 
             </div>

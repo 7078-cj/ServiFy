@@ -35,6 +35,12 @@ class BusinessListCreateView(ListCreateAPIView):
         )
 
     def perform_create(self, serializer):
+        
+        if self.request.user.profile.role == 'customer':
+            self.request.user.profile.role = 'provider'
+            self.request.user.profile.save()
+            
+            
         serializer.save(owner=self.request.user)
 
 

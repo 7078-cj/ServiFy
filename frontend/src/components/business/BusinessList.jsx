@@ -33,14 +33,6 @@ export default function BusinessList({businesses}) {
             {/* ✨ HEADER */}
             <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 
-                <div>
-                    <h2 className="text-2xl font-bold text-gray-900 tracking-tight">
-                        Explore Businesses
-                    </h2>
-                    <p className="text-sm text-gray-400 mt-1">
-                        Discover {businesses.length} available businesses
-                    </p>
-                </div>
 
                 {/* Optional future filter/search placeholder */}
                 <div className="hidden sm:block">
