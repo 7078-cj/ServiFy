@@ -9,7 +9,7 @@ const allBusinessSlice = createSlice({
     name: "all_business",
     initialState,
     reducers: {
-        setBusinesses(state, action) {
+        setAllBusinesses(state, action) {
             state.businesses = action.payload;
             state.markers = action.payload
                 .filter(b => b.latitude && b.longitude)
@@ -23,5 +23,5 @@ const allBusinessSlice = createSlice({
     },
 });
 
-export const { setBusinesses } = allBusinessSlice.actions;
+export const { setAllBusinesses } = allBusinessSlice.actions;
 export default allBusinessSlice.reducer;

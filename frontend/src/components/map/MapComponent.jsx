@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, use } from "react";
 import {
   Map,
   MapMarker,
@@ -10,7 +10,7 @@ import { MapEventListener } from "../../utils/mapUtils/mapEventListener";
 import { handleSearch } from "../../utils/mapUtils/map";
 import SearchInput from "../SearchInput";
 
-export default function MapComponent({ location = null, setLocation = null, Markers = [], editMode = false }) {
+export default function MapComponent({ location = null, setLocation = null, Markers = [], editMode = false, userLocation = true }) {
   const [searchQuery, setSearchQuery] = useState("");
   const mapRef = useRef(null);
 
@@ -22,6 +22,18 @@ export default function MapComponent({ location = null, setLocation = null, Mark
       });
     }
   }, [location]);
+
+  useEffect(() => {
+    if (userLocation) {
+      navigator.geolocation.getCurrentPosition((position) => {
+        const { latitude, longitude } = position.coords;
+        mapRef.current?.flyTo({
+          center: [longitude, latitude],
+          zoom: 16,
+        });
+      });
+    }
+  }, [userLocation]);
 
   return (
     <>

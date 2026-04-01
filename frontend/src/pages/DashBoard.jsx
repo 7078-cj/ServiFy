@@ -1,9 +1,25 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 
 import BusinessList from '../components/business/BusinessList'
 import MapComponent from '../components/map/MapComponent'
+import { useDispatch, useSelector } from 'react-redux';
+import { getRequest } from '../utils/reqests/requests';
+import { setAllBusinesses } from '../features/business/allBusinessSlice';
+
+
 
 function DashBoard() {
+    const dispatch = useDispatch();
+    const { businesses } = useSelector(state => state.allBusinesses);
+
+    useEffect(() => {
+        const fetchBusinesses = async () => {
+            const res = await getRequest("all_businesses/");
+            dispatch(setAllBusinesses(res));
+        };
+        fetchBusinesses();
+    }, []);
+
   return (
     <>
       <div className='flex flex-col lg:flex-row w-full h-[calc(100vh-124px)] relative'>
@@ -11,7 +27,7 @@ function DashBoard() {
         {/* Left panel — full width on mobile, 45% on desktop */}
         <div className='w-full lg:w-[45%] h-[40%] lg:h-full overflow-y-auto 
                 bg-white/70 z-10 relative shadow-xl'>
-          <BusinessList/>
+          <BusinessList businesses={businesses} />
         </div>
 
         {/* Blur overlay — desktop only */}

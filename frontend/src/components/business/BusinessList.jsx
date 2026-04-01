@@ -1,48 +1,71 @@
 import React, { useEffect } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import { getRequest } from '../../utils/reqests/requests'
-import { setBusinesses } from '../../features/business/allBusinessSlice'
+
 import BusinessCard from './BusinessCard'
 import { Store } from 'lucide-react'
 
-export default function BusinessList() {
-    const dispatch = useDispatch();
-    const { businesses } = useSelector(state => state.allBusinesses);
 
-    useEffect(() => {
-        const fetchBusinesses = async () => {
-            const res = await getRequest("all_businesses/");
-            dispatch(setBusinesses(res));
-        };
-        fetchBusinesses();
-    }, []);
+export default function BusinessList({businesses}) {
 
+    // ✨ EMPTY STATE (Improved)
     if (businesses.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center py-24 text-center gap-3">
-                <div className="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center">
-                    <Store size={26} className="text-blue-400" />
+            <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-100 to-blue-50 flex items-center justify-center shadow-sm">
+                    <Store size={28} className="text-blue-500" />
                 </div>
-                <p className="text-sm font-semibold text-gray-700">No businesses found</p>
-                <p className="text-xs text-gray-400">Check back later or try a different search.</p>
+
+                <h3 className="mt-4 text-base font-semibold text-gray-800">
+                    No businesses found
+                </h3>
+
+                <p className="text-sm text-gray-400 mt-1 max-w-xs">
+                    Looks like there’s nothing here yet. Try refreshing or check back later.
+                </p>
             </div>
         );
     }
 
     return (
-        <div className="px-4 py-6 max-w-7xl mx-auto">
-            {/* Header */}
-            <div className="mb-6 flex items-center justify-between">
+        <div className="px-4 sm:px-6 lg:px-8 py-8 max-w-7xl mx-auto">
+            
+            {/* ✨ HEADER */}
+            <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                
                 <div>
-                    <h2 className="text-lg font-bold text-gray-900">Explore Businesses</h2>
-                    <p className="text-xs text-gray-400 mt-0.5">{businesses.length} businesses available</p>
+                    <h2 className="text-2xl font-bold text-gray-900 tracking-tight">
+                        Explore Businesses
+                    </h2>
+                    <p className="text-sm text-gray-400 mt-1">
+                        Discover {businesses.length} available businesses
+                    </p>
+                </div>
+
+                {/* Optional future filter/search placeholder */}
+                <div className="hidden sm:block">
+                    <div className="px-4 py-2 rounded-xl bg-gray-50 text-xs text-gray-400 border">
+                        Filters coming soon
+                    </div>
                 </div>
             </div>
 
-            {/* Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-                {businesses.map(b => (
-                    <BusinessCard key={b.id} business={b} />
+            {/* ✨ GRID */}
+            <div className="
+                grid 
+                grid-cols-1 
+                sm:grid-cols-2 
+                lg:grid-cols-3 
+                xl:grid-cols-4 
+                gap-6
+            ">
+                {businesses.map((b) => (
+                    <div
+                        key={b.id}
+                        className="transition-transform duration-200 hover:scale-[1.02]"
+                    >
+                        <BusinessCard business={b} />
+                    </div>
                 ))}
             </div>
         </div>
