@@ -3,7 +3,7 @@ import { MapPin, Star, Users, DollarSign, ImageOff } from "lucide-react";
 
 const BASE_URL = "http://localhost:8000/media/";
 
-export default function BusinessCard({ business }) {
+export default function BusinessCard({ business, onClick }) {
     const {
         name,
         description,
@@ -35,7 +35,7 @@ export default function BusinessCard({ business }) {
     };
 
     return (
-        <div className="group w-full max-w-sm rounded-2xl overflow-hidden bg-white shadow-md hover:shadow-xl transition-shadow duration-300 cursor-pointer">
+        <div className="group w-full max-w-sm rounded-2xl overflow-hidden bg-white shadow-md hover:shadow-xl transition-shadow duration-300 cursor-pointer" onClick={onClick}>
 
             {/* Cover image */}
             <div className="relative h-48 bg-gray-100 overflow-hidden">

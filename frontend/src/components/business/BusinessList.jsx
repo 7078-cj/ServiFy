@@ -4,9 +4,18 @@ import { getRequest } from '../../utils/reqests/requests'
 
 import BusinessCard from './BusinessCard'
 import { Store } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 
 
 export default function BusinessList({businesses}) {
+
+    const navigate = useNavigate()
+
+    const handleClick = (id) => {
+        navigate(`/business/${id}`)
+    }
+
+
 
     // ✨ EMPTY STATE (Improved)
     if (businesses.length === 0) {
@@ -56,7 +65,7 @@ export default function BusinessList({businesses}) {
                         key={b.id}
                         className="transition-transform duration-200 hover:scale-[1.02]"
                     >
-                        <BusinessCard business={b} />
+                        <BusinessCard business={b} onClick={() => handleClick(b.id)} />
                     </div>
                 ))}
             </div>

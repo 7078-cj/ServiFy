@@ -12,6 +12,7 @@ import ForgotPasswordPage from "./pages/ForgotPassword";
 import Test from "./pages/Test";
 import Header from "./components/Header";
 import Profile from "./pages/Profile";
+import BusinessPage from "./pages/BusinessPage";
 
 
 function AppContent() {
@@ -21,7 +22,7 @@ function AppContent() {
   const [isProvider, setIsProvider] = useState(false)
 
   // add this
-  const hideHeaderRoutes = ["/login", "/register", "/forgot_password"];
+  const hideHeaderRoutes = ["/login", "/register", "/forgot_password", ];
   const showHeader = !hideHeaderRoutes.includes(location.pathname);
 
   const navItems = [
@@ -49,6 +50,7 @@ function AppContent() {
         <Route element={<PrivateRoutes />}>
           <Route path="/" element={<DashBoard />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/business/:id" element={<BusinessPage />} />
           <Route path="/test" element={<Test />} />
         </Route>
       </Routes>
