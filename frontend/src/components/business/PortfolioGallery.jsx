@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { X } from "lucide-react"
-import { Dialog, DialogContent } from "../../../components/ui/dialog"
+import { Dialog, DialogContent } from "../ui/dialog"
 
 const BASE_URL = import.meta.env.VITE_MEDIA_URL
 

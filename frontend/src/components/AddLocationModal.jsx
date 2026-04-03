@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 ;
-import { Button } from "../../components/ui/button";
+import { Button } from "./ui/button";
 import MapComponent from "./map/MapComponent"; // adjust path
 import {
     Dialog,
@@ -8,7 +8,7 @@ import {
     DialogHeader,
     DialogTitle,
     DialogFooter,
-} from "../../components/ui/dialog";
+} from "./ui/dialog";
 
 export default function AddLocationModal({ open, onClose, onSave }) {
     const [location, setLocation] = useState({

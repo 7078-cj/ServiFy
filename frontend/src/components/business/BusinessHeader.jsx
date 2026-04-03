@@ -1,5 +1,5 @@
 import { MapPin } from "lucide-react"
-import { Badge } from "../../../components/ui/badge"
+import { Badge } from "../ui/badge"
 import BusinessAvatar from "./BusinessAvatar"
 import StarRating from "./StarRating"
 

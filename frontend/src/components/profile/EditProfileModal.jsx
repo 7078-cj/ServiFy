@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { Button } from "../../../components/ui/button";
+import { Button } from "../ui/button";
 import {
     Dialog,
     DialogContent,
     DialogHeader,
     DialogTitle,
     DialogFooter,
-} from "../../../components/ui/dialog";
-import { Input } from "../../../components/ui/input";
-import { Label } from "../../../components/ui/label";
+} from "../ui/dialog";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
 
 const media_url = import.meta.env.VITE_API_MEDIA;
 export default function EditProfileModal({ open, onClose, profile, onSave }) {

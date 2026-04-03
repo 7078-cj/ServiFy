@@ -1,5 +1,5 @@
-import { Separator } from "../../../components/ui/separator"
-import { Badge } from "../../../components/ui/badge"
+import { Separator } from "../ui/separator"
+import { Badge } from "../ui/badge"
 
 export default function ServicesList({ services }) {
     if (!services?.length) return null

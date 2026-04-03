@@ -4,7 +4,7 @@ import EditProfileModal from "../components/profile/EditProfileModal";
 import ProfileDetails from "../components/profile/ProfileDetails";
 import { getRequest, postRequest, putRequest } from "../utils/reqests/requests";
 import { setProfile } from "../features/profile/profileSlice";
-import { Button } from "../../components/ui/button";
+import { Button } from "../components/ui/button";
 import AddUpdateBusinessModal from "../components/business/AddUpdateBusinessModal";
 import { setAllBusinesses } from "../features/business/allBusinessSlice";
 import { setBusinesses } from "../features/business/businessSlice";
