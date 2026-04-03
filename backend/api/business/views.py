@@ -51,7 +51,6 @@ class BusinessDetailView(RetrieveUpdateDestroyAPIView):
     def get_queryset(self):
         return (
             Business.objects
-            .filter(owner=self.request.user)
             .prefetch_related('review', 'portfolio', 'services', 'review__author')
             .annotate(avg_rating=Avg('review__rate'))
         )
