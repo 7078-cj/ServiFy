@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { useParams } from "react-router-dom"
-import { useSelector } from "react-redux"
-import { getRequest } from "../utils/reqests/requests"
+import { useDispatch, useSelector } from "react-redux"
+import { getRequest, putRequest } from "../utils/reqests/requests"
 import BusinessHeader from "../components/business/BusinessHeader"
 import BusinessAbout from "../components/business/BusinessAbout"
 import PricingCard from "../components/business/PricingCard"
@@ -9,6 +9,10 @@ import PortfolioGallery from "../components/business/PortfolioGallery"
 import ServicesList from "../components/business/ServiceList"
 import ReviewsList from "../components/business/ReviewsList"
 import BusinessPageSkeleton from "../components/business/BusinessPageSkeleton"
+import AddUpdateBusinessModal from "../components/business/AddUpdateBusinessModal"
+import { updateInAllBusiness } from "../features/business/allBusinessSlice"
+import { updateBusiness } from "../features/business/businessSlice"
+
 
 
 
@@ -18,6 +22,21 @@ export default function BusinessPage() {
     const [business, setBusiness] = useState(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
+    const [businessModalOpen, setBusinessModalOpen] = useState(false);
+    const dispatch = useDispatch();
+
+    const handleBusinessSave = async (formData) => {
+        try {
+            const res = await putRequest(`businesses/${id}/`, formData, tokens.access, true);
+    
+            dispatch(updateInAllBusiness(res));
+            dispatch(updateBusiness(res));
+            setBusiness(res);
+            setBusinessModalOpen(false); 
+        } catch (error) {
+            console.error("Failed to save business:", error);
+        }
+    };
 
     useEffect(() => {
         const fetchBusiness = async () => {
@@ -59,30 +78,39 @@ export default function BusinessPage() {
 
     return (
         <div className="max-w-3xl mx-auto px-4 py-8 space-y-5">
-        <BusinessHeader business={business} />
+            <BusinessHeader business={business} setBusinessModalOpen={setBusinessModalOpen} />
 
-        {(hasAbout || hasPricing) && (
-            <div className="grid sm:grid-cols-2 gap-5">
-            {hasAbout && <BusinessAbout description={description} />}
-            {hasPricing && (
-                <PricingCard
-                min_price={min_price}
-                max_price={max_price}
-                average_price={average_price}
-                />
+            {(hasAbout || hasPricing) && (
+                <div className="grid sm:grid-cols-2 gap-5">
+                {hasAbout && <BusinessAbout description={description} />}
+                {hasPricing && (
+                    <PricingCard
+                    min_price={min_price}
+                    max_price={max_price}
+                    average_price={average_price}
+                    />
+                )}
+                </div>
             )}
-            </div>
-        )}
 
-        <PortfolioGallery portfolio={portfolio} />
-        <ServicesList services={services} />
-        <ReviewsList reviews={reviews} />
+            <PortfolioGallery portfolio={portfolio} />
+            <ServicesList services={services} />
+            <ReviewsList reviews={reviews} />
 
-        {!services?.length && !reviews?.length && (
-            <p className="text-center text-sm text-gray-400 py-4">
-            No services or reviews yet.
-            </p>
-        )}
+            {!services?.length && !reviews?.length && (
+                <p className="text-center text-sm text-gray-400 py-4">
+                No services or reviews yet.
+                </p>
+            )}
+
+            
+
+            <AddUpdateBusinessModal
+                business={business}
+                open={businessModalOpen}
+                onClose={() => setBusinessModalOpen(false)}
+                onSave={handleBusinessSave} 
+            />
         </div>
     )
 }

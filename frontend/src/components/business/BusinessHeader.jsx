@@ -1,12 +1,15 @@
-import { MapPin } from "lucide-react"
+import { MapPin, Plus } from "lucide-react"
 import { Badge } from "../ui/badge"
 import BusinessAvatar from "./BusinessAvatar"
 import StarRating from "./StarRating"
+import { useSelector } from "react-redux"
+import { Button } from "../ui/button"
 
 const BASE_URL = import.meta.env.VITE_MEDIA_URL
 
-export default function BusinessHeader({ business }) {
+export default function BusinessHeader({ business, setBusinessModalOpen }) {
     const { owner, logo, name, address, average_rating, reviews } = business
+    const { user } = useSelector((state) => state.auth)
 
     return (
         <div className="bg-white rounded-2xl border border-gray-100 p-6 flex flex-col sm:flex-row items-start gap-5 shadow-sm">
@@ -35,19 +38,30 @@ export default function BusinessHeader({ business }) {
 
             <StarRating rating={average_rating} />
         </div>
-
-        {/* Owner pill */}
-        <div className="flex items-center gap-2.5 bg-gray-50 border border-gray-100 rounded-full px-3 py-2 shrink-0">
-            <BusinessAvatar
-            name={`${owner.first_name} ${owner.last_name}`}
-            size="sm"
-            />
-            <div className="leading-tight">
-            <p className="text-xs font-semibold text-gray-700">
-                {owner.first_name} {owner.last_name}
-            </p>
-            <p className="text-[11px] text-gray-400">Owner</p>
+        
+        <div className="flex flex-col gap-4">
+            {/* Owner pill */}
+            <div className="flex items-center gap-2.5 bg-gray-50 border border-gray-100 rounded-full px-3 py-2 shrink-0">
+                <BusinessAvatar
+                name={`${owner.first_name} ${owner.last_name}`}
+                size="sm"
+                />
+                <div className="leading-tight">
+                <p className="text-xs font-semibold text-gray-700">
+                    {owner.first_name} {owner.last_name}
+                </p>
+                <p className="text-[11px] text-gray-400">Owner</p>
+                </div>
             </div>
+            {user?.id === owner.id && (
+                <Button
+                    onClick={() => setBusinessModalOpen(true)}
+                    className="flex items-center gap-2"
+                >
+                    <Plus size={16} />
+                    Edit Business
+                </Button>
+            )}
         </div>
         </div>
     )
