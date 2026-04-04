@@ -1,6 +1,6 @@
 import React from 'react'
 
-const media_url = import.meta.env.VITE_API_MEDIA;
+const media_url = import.meta.env.VITE_MEDIA_URL;
 export default function ProfileDetails({profile, setModalOpen}) {
     return (
 <div className="p-6">

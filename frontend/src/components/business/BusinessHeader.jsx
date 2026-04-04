@@ -6,6 +6,7 @@ import { useSelector } from "react-redux"
 import { Button } from "../ui/button"
 
 const BASE_URL = import.meta.env.VITE_MEDIA_URL
+const media_url = import.meta.env.VITE_MEDIA_URL;
 
 export default function BusinessHeader({ business, setBusinessModalOpen }) {
     const { owner, logo, name, address, average_rating, reviews } = business
@@ -43,6 +44,7 @@ export default function BusinessHeader({ business, setBusinessModalOpen }) {
             {/* Owner pill */}
             <div className="flex items-center gap-2.5 bg-gray-50 border border-gray-100 rounded-full px-3 py-2 shrink-0">
                 <BusinessAvatar
+                imageUrl={owner.profile.profile_image ? `${media_url}${owner.profile.profile_image}` : null}
                 name={`${owner.first_name} ${owner.last_name}`}
                 size="sm"
                 />
