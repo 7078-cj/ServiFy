@@ -16,12 +16,7 @@ export default function BusinessCard({ business, onClick }) {
         reviews,
     } = business;
 
-    const coverPhoto =
-        portfolio?.[0]?.photo
-            ? `${BASE_URL}${portfolio[0].photo}`
-            : logo
-            ? `${BASE_URL}${logo}`
-            : null;
+    const coverPhoto = logo ? `${BASE_URL}${logo}` : portfolio?.[0] ? `${BASE_URL}${portfolio[0]}` : null;
 
     const reviewCount = reviews?.length ?? 0;
 

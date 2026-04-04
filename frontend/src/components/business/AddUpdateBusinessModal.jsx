@@ -12,7 +12,7 @@ import { Button } from "../ui/button";
 import { createFormData } from "../../utils/form/form";
 import AddLocationModal from "../AddLocationModal";
 
-const media_url = import.meta.env.VITE_API_MEDIA;
+const media_url = import.meta.env.VITE_MEDIA_URL;
 
 export default function AddUpdateBusinessModal({
     open,
