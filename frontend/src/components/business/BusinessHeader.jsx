@@ -9,7 +9,7 @@ const BASE_URL = import.meta.env.VITE_MEDIA_URL
 
 export default function BusinessHeader({ business, setBusinessModalOpen }) {
     const { owner, logo, name, address, average_rating, reviews } = business
-    const { user } = useSelector((state) => state.auth)
+    const user = JSON.parse(localStorage.getItem("user")) || null
 
     return (
         <div className="bg-white rounded-2xl border border-gray-100 p-6 flex flex-col sm:flex-row items-start gap-5 shadow-sm">

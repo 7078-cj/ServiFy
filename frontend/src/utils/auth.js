@@ -110,7 +110,7 @@ export const updateToken = async (dispatch) => {
 
     if (response.ok) {
 
-        const user = jwtDecode(data.access);
+        const user = await getRequest("user/profile/", data.access);
 
         const newTokens = {
             access: data.access,
