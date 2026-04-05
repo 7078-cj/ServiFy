@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, use } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   Map,
   MapMarker,
@@ -10,9 +10,19 @@ import { MapEventListener } from "../../utils/mapUtils/mapEventListener";
 import { handleSearch } from "../../utils/mapUtils/map";
 import SearchInput from "../SearchInput";
 
-export default function MapComponent({ location = null, setLocation = null, Markers = [], editMode = false, userLocation = true }) {
+const media_url = import.meta.env.VITE_MEDIA_URL;
+
+export default function MapComponent({
+  location = null,
+  setLocation = null,
+  Markers = [],
+  editMode = false,
+  userLocation = true,
+  mapRef: externalMapRef = null,
+}) {
   const [searchQuery, setSearchQuery] = useState("");
-  const mapRef = useRef(null);
+  const internalMapRef = useRef(null);
+  const mapRef = externalMapRef ?? internalMapRef;
 
   useEffect(() => {
     if (location?.lat != null && location?.lng != null) {
@@ -37,7 +47,6 @@ export default function MapComponent({ location = null, setLocation = null, Mark
 
   return (
     <>
-      {/* Search input */}
       {location && (
         <SearchInput
           searchQuery={searchQuery}
@@ -57,7 +66,7 @@ export default function MapComponent({ location = null, setLocation = null, Mark
       >
         {location && <MapEventListener setLocation={setLocation} editMode={editMode} />}
 
-        {/* Render markers */}
+        {/* Business markers */}
         {Markers.map((marker) =>
           marker.latitude != null && marker.longitude != null ? (
             <MapMarker
@@ -66,15 +75,44 @@ export default function MapComponent({ location = null, setLocation = null, Mark
               latitude={marker.latitude}
             >
               <MarkerContent>
-                <div className="w-5 h-5 rounded-full bg-rose-500 border-2 border-white shadow-lg cursor-pointer hover:scale-110 transition-transform" />
+                {marker.logo ? (
+                  <div className="w-9 h-9 rounded-full border-2 border-white shadow-lg cursor-pointer hover:scale-110 transition-transform overflow-hidden bg-white">
+                    <img
+                      src={`${media_url}${marker.logo}`}
+                      alt={marker.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="w-9 h-9 rounded-full bg-rose-500 border-2 border-white shadow-lg cursor-pointer hover:scale-110 transition-transform flex items-center justify-center">
+                    <span className="text-white text-xs font-bold">
+                      {marker.name?.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                )}
               </MarkerContent>
               <MarkerTooltip>{marker.name}</MarkerTooltip>
               <MarkerPopup>
-                <div className="space-y-1 p-2">
-                  <p className="font-medium text-foreground">{marker.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {marker.latitude.toFixed(4)}, {marker.longitude.toFixed(4)}
-                  </p>
+                <div className="flex items-center gap-2 p-2">
+                  {marker.logo ? (
+                    <img
+                      src={`${media_url}${marker.logo}`}
+                      alt={marker.name}
+                      className="w-8 h-8 rounded-full object-cover border border-border"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-rose-500 flex items-center justify-center flex-shrink-0">
+                      <span className="text-white text-xs font-bold">
+                        {marker.name?.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                  )}
+                  <div className="space-y-0.5">
+                    <p className="font-medium text-foreground">{marker.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {marker.latitude.toFixed(4)}, {marker.longitude.toFixed(4)}
+                    </p>
+                  </div>
                 </div>
               </MarkerPopup>
             </MapMarker>

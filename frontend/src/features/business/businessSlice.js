@@ -11,6 +11,7 @@ const generateMarkers = (businesses) => {
         .map(b => ({
             id: b.id,
             name: b.name,
+            logo: b.logo,
             latitude: parseFloat(b.latitude),
             longitude: parseFloat(b.longitude),
         }));

@@ -103,7 +103,7 @@ export default function Profile() {
 
 
                 <div className="bg-white rounded-2xl p-10 text-center shadow-sm border border-gray-100">
-                    <BusinessList businesses={businesses} />
+                    <BusinessList businesses={businesses} isDashboard={false} />
                 </div>
 
             </div>

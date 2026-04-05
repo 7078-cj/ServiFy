@@ -17,6 +17,7 @@ const allBusinessSlice = createSlice({
                 .map(b => ({
                     id: b.id,
                     name: b.name,
+                    logo: b.logo,
                     latitude: parseFloat(b.latitude),
                     longitude: parseFloat(b.longitude),
                 }));
@@ -30,6 +31,7 @@ const allBusinessSlice = createSlice({
                     state.markers[markerIndex] = {
                         id: action.payload.id,
                         name: action.payload.name,
+                        logo: action.payload.logo,
                         latitude: parseFloat(action.payload.latitude),
                         longitude: parseFloat(action.payload.longitude),
                     };
