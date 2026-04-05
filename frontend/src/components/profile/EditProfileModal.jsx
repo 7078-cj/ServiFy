@@ -10,7 +10,7 @@ import {
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 
-const media_url = import.meta.env.VITE_API_MEDIA;
+const media_url = import.meta.env.VITE_MEDIA_URL;
 export default function EditProfileModal({ open, onClose, profile, onSave }) {
     const [formData, setFormData] = useState({
         first_name: "",
