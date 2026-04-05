@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { useParams } from "react-router-dom"
 import { useDispatch, useSelector } from "react-redux"
-import { getRequest, putRequest } from "../utils/reqests/requests"
+import { deleteRequest, getRequest, postRequest, putRequest } from "../utils/reqests/requests"
 import BusinessHeader from "../components/business/BusinessHeader"
 import BusinessAbout from "../components/business/BusinessAbout"
 import PricingCard from "../components/business/PricingCard"
@@ -24,6 +24,7 @@ export default function BusinessPage() {
     const [error, setError] = useState(null)
     const [businessModalOpen, setBusinessModalOpen] = useState(false);
     const dispatch = useDispatch();
+    const user = JSON.parse(localStorage.getItem("user")) || null
 
     const handleBusinessSave = async (formData) => {
         try {
@@ -37,6 +38,49 @@ export default function BusinessPage() {
             console.error("Failed to save business:", error);
         }
     };
+
+    const handleUpload = async (files) => {
+        try {
+            const formData = new FormData()
+
+            files.forEach(file => {
+                formData.append("photos", file) 
+            })
+
+            const res = await postRequest(
+                `businesses/${id}/portfolios/`,
+                formData,
+                tokens.access,
+                true
+            )
+
+            
+            setBusiness(prev => ({
+                ...prev,
+                portfolio: [...prev.portfolio, ...res]
+            }))
+
+        } catch (err) {
+            console.error("Upload failed:", err)
+        }
+    }
+
+    const handleDelete = async (photoId) => {
+        try {
+            await deleteRequest(
+                `businesses/${id}/portfolios/${photoId}/`, 
+                tokens.access
+            )
+
+            setBusiness(prev => ({
+                ...prev,
+                portfolio: prev.portfolio.filter(p => p.id !== photoId)
+            }))
+
+        } catch (err) {
+            console.error("Delete failed:", err)
+        }
+    }
 
     useEffect(() => {
         const fetchBusiness = async () => {
@@ -75,6 +119,7 @@ export default function BusinessPage() {
 
     const hasAbout = !!description
     const hasPricing = min_price || max_price || average_price
+    const isOwner = business.owner.id === user?.id
 
     return (
         <div className="max-w-3xl mx-auto px-4 py-8 space-y-5">
@@ -93,7 +138,12 @@ export default function BusinessPage() {
                 </div>
             )}
 
-            <PortfolioGallery portfolio={portfolio} />
+            <PortfolioGallery 
+                portfolio={portfolio}
+                isOwner={isOwner}
+                onUpload={handleUpload}
+                onDelete={handleDelete}
+            />
             <ServicesList services={services} />
             <ReviewsList reviews={reviews} />
 

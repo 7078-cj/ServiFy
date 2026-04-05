@@ -113,3 +113,33 @@ export const patchRequest = async (endpoint, data = {}, token = null, isForm = f
     }
 };
 
+export const deleteRequest = async (endpoint, token = null) => {
+    try {
+        const headers = {
+            ...(token && { Authorization: `Bearer ${token}` })
+        };
+
+        const res = await fetch(`${API}${endpoint}`, {
+            method: "DELETE",
+            headers,
+            credentials: "include",
+        });
+
+        
+        if (res.status === 204) {
+            return true;
+        }
+
+        const data = await res.json().catch(() => null);
+
+        if (!res.ok) {
+            throw new Error(data?.message || "Delete failed");
+        }
+
+        return data;
+
+    } catch (error) {
+        console.error("DELETE REQUEST ERROR:", error);
+        throw error;
+    }
+};
