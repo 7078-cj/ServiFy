@@ -251,7 +251,6 @@ class BookingListCreateView(ListCreateAPIView):
             Booking.objects
             .filter(
                 user=self.request.user,
-                service=self.get_service()
             )
             .select_related('user', 'service', 'service__business')
             .order_by('-created_at')
@@ -300,6 +299,18 @@ class BusinessBookingListView(ListAPIView):
                 service__business_id=business_id,
                 service__business__owner=self.request.user
             )
+            .select_related('user', 'service', 'service__business')
+            .order_by('-created_at')
+        )
+        
+class UserBookingListView(ListAPIView):
+    serializer_class = BookingSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return (
+            Booking.objects
+            .filter(user=self.request.user)
             .select_related('user', 'service', 'service__business')
             .order_by('-created_at')
         )
