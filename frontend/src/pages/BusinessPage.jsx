@@ -16,6 +16,7 @@ import { Plus } from "lucide-react"
 import { createService } from "../api/services"
 import { getBusiness, updateBusiness } from "../api/business"
 import { deletePortfolioPhoto, uploadPortfolio } from "../api/portfolio"
+import { addReview, deleteReview, updateReview } from "../api/reviews"
 
 
 
@@ -53,6 +54,35 @@ export default function BusinessPage() {
             formData,
             setServicesModalOpen,
             fetchBusiness
+        )
+    }
+
+
+    const handleAddReview = async (formData) => {
+        return await addReview(
+            id,
+            formData,
+            null,
+            fetchBusiness
+        )
+    }
+
+    const handleUpdateReview = async (reviewId, formData) => {
+        return await updateReview(  
+            id,
+            reviewId,
+            formData,
+            null,
+            fetchBusiness
+        )
+    }
+
+    const handleDeleteReview = async (reviewId) => {
+        return await deleteReview(
+            id,
+            reviewId,
+            fetchBusiness
+
         )
     }
 
@@ -114,11 +144,16 @@ export default function BusinessPage() {
                 </Button>
             }
             <ServicesList services={services} owner={business.owner} businessId={id} fetchBusiness={fetchBusiness} />
-            <ReviewsList reviews={reviews} />
+            <ReviewsList 
+            reviews={reviews} 
+            onAddReview={handleAddReview}
+            onUpdateReview={handleUpdateReview} 
+            onDeleteReview={handleDeleteReview} 
+            currentUser={user} />
 
-            {!services?.length && !reviews?.length && (
+            {!services?.length  && (
                 <p className="text-center text-sm text-gray-400 py-4">
-                No services or reviews yet.
+                No services  yet.
                 </p>
             )}
 
