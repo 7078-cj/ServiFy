@@ -57,7 +57,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
     
 
 class BookingSerializer(serializers.ModelSerializer):
-    user = serializers.StringRelatedField(read_only=True)
+    user = UserProfileSerializer(read_only=True)
+    business_name = serializers.CharField(source='service.business.name', read_only=True)
     service_name = serializers.CharField(source='service.name', read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
 
@@ -67,6 +68,10 @@ class BookingSerializer(serializers.ModelSerializer):
             'id',
             'user',
             'service_name',
+            'business_name',
+            'latitude',
+            'longitude',
+            'address',
             'date',
             'status',
             'status_display',
