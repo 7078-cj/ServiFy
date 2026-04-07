@@ -2,6 +2,7 @@ import { Pencil, Trash2 } from "lucide-react"
 import AddUpdateServiceModal from "./AddUpdateServiceModal";
 import { useState } from "react";
 import { putRequest, deleteRequest } from "../../utils/reqests/requests"
+import { deleteService, updateService } from "../../api/services";
 
 const media_url = import.meta.env.VITE_MEDIA_URL;
 
@@ -15,32 +16,16 @@ export default function ServiceCard({
     const [showEditModal, setShowEditModal] = useState(false);
     const [loading, setLoading] = useState(false);
 
-    const user = JSON.parse(localStorage.getItem("user")) || null
-    const token = JSON.parse(localStorage.getItem("authTokens")) || null
-
 
     const handleUpdate = async (formData) => {
-        try {
-            setLoading(true)
-
-            await putRequest(
-                `businesses/${businessId}/services/${svc.id}/`,
-                formData,
-                token.access,
-                true 
-            )
-
-            setShowEditModal(false)
-
-            // refresh list
-            onRefresh && onRefresh()
-
-        } catch (err) {
-            console.error(err)
-            alert(err.message)
-        } finally {
-            setLoading(false)
-        }
+        await updateService(
+            businessId,
+            svc.id,
+            formData,
+            setLoading,
+            setShowEditModal,
+            onRefresh
+        )
     }
 
     
@@ -48,22 +33,12 @@ export default function ServiceCard({
         const confirmDelete = window.confirm("Delete this service?")
         if (!confirmDelete) return
 
-        try {
-            setLoading(true)
-
-            await deleteRequest(
-                `businesses/${businessId}/services/${svc.id}/`,
-                token.access
-            )
-
-            onRefresh && onRefresh()
-
-        } catch (err) {
-            console.error(err)
-            alert(err.message)
-        } finally {
-            setLoading(false)
-        }
+        await deleteService(
+            businessId,
+            svc.id,
+            setLoading,
+            onRefresh
+        )
     }
 
     return (

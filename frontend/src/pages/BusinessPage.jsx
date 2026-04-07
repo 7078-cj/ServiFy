@@ -10,11 +10,12 @@ import ServicesList from "../components/business/ServiceList"
 import ReviewsList from "../components/business/ReviewsList"
 import BusinessPageSkeleton from "../components/business/BusinessPageSkeleton"
 import AddUpdateBusinessModal from "../components/business/AddUpdateBusinessModal"
-import { updateInAllBusiness } from "../features/business/allBusinessSlice"
-import { updateBusiness } from "../features/business/businessSlice"
 import AddUpdateServiceModal from "../components/business/AddUpdateServiceModal"
 import { Button } from "../components/ui/button"
 import { Plus } from "lucide-react"
+import { createService } from "../api/services"
+import { getBusiness, updateBusiness } from "../api/business"
+import { deletePortfolioPhoto, uploadPortfolio } from "../api/portfolio"
 
 
 
@@ -31,88 +32,28 @@ export default function BusinessPage() {
     const user = JSON.parse(localStorage.getItem("user")) || null
 
     const fetchBusiness = async () => {
-        setLoading(true)
-        setError(null)
-        try {
-            const res = await getRequest(`businesses/${id}/`, tokens.access)
-            setBusiness(res)
-        } catch {
-            setError("Failed to load business details.")
-        } finally {
-            setLoading(false)
-        }
+        await getBusiness(id, setBusiness, setLoading, setError)
     }
 
     const handleBusinessSave = async (formData) => {
-        try {
-            const res = await putRequest(`businesses/${id}/`, formData, tokens.access, true);
-    
-            dispatch(updateInAllBusiness(res));
-            dispatch(updateBusiness(res));
-            setBusiness(res);
-            setBusinessModalOpen(false); 
-        } catch (error) {
-            console.error("Failed to save business:", error);
-        }
+        await updateBusiness(id, formData, setBusinessModalOpen, setBusiness)
     };
 
     const handleUpload = async (files) => {
-        try {
-            const formData = new FormData()
-
-            files.forEach(file => {
-                formData.append("photos", file) 
-            })
-
-            const res = await postRequest(
-                `businesses/${id}/portfolios/`,
-                formData,
-                tokens.access,
-                true
-            )
-
-            
-            setBusiness(prev => ({
-                ...prev,
-                portfolio: [...prev.portfolio, ...res]
-            }))
-
-        } catch (err) {
-            console.error("Upload failed:", err)
-        }
+        await uploadPortfolio(id, files, setBusiness)
     }
 
     const handleDelete = async (photoId) => {
-        try {
-            await deleteRequest(
-                `businesses/${id}/portfolios/${photoId}/`, 
-                tokens.access
-            )
-
-            setBusiness(prev => ({
-                ...prev,
-                portfolio: prev.portfolio.filter(p => p.id !== photoId)
-            }))
-
-        } catch (err) {
-            console.error("Delete failed:", err)
-        }
+        await deletePortfolioPhoto(id, photoId, setBusiness)
     }
 
     const handleServiceSave = async (formData) => {
-        try {
-            const res = await postRequest(
-                `businesses/${id}/services/`,
-                formData,
-                tokens.access,
-                true
-            )
-            fetchBusiness()
-            setServicesModalOpen(false)
-        } catch (err) {
-            console.error("Failed to save service:", err)
-        }
-
+        await createService(
+            id,
+            formData,
+            setServicesModalOpen,
+            fetchBusiness
+        )
     }
 
     useEffect(() => {

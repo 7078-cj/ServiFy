@@ -2,8 +2,7 @@ import React, { useEffect, useRef } from 'react'
 import BusinessList from '../components/business/BusinessList'
 import MapComponent from '../components/map/MapComponent'
 import { useDispatch, useSelector } from 'react-redux';
-import { getRequest } from '../utils/reqests/requests';
-import { setAllBusinesses } from '../features/business/allBusinessSlice';
+import { getAllBusinesses } from '../api/business';
 
 function DashBoard() {
     const dispatch = useDispatch();
@@ -11,11 +10,7 @@ function DashBoard() {
     const mapRef = useRef(null);
 
     useEffect(() => {
-        const fetchBusinesses = async () => {
-            const res = await getRequest("all_businesses/");
-            dispatch(setAllBusinesses(res));
-        };
-        fetchBusinesses();
+        getAllBusinesses(dispatch)
     }, []);
 
     // Called when a business is focused — fly in close

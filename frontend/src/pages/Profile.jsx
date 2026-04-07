@@ -6,10 +6,10 @@ import { getRequest, postRequest, putRequest } from "../utils/reqests/requests";
 import { setProfile } from "../features/profile/profileSlice";
 import { Button } from "../components/ui/button";
 import AddUpdateBusinessModal from "../components/business/AddUpdateBusinessModal";
-import { setAllBusinesses } from "../features/business/allBusinessSlice";
-import { setBusinesses } from "../features/business/businessSlice";
 import { Plus } from "lucide-react";
 import BusinessList from "../components/business/BusinessList";
+import { createBusiness, getUserBusinesses } from "../api/business";
+import { editProfile } from "../api/profile";
 
 export default function Profile() {
     const { profile } = useSelector((state) => state.profile);
@@ -21,43 +21,21 @@ export default function Profile() {
     const [businessModalOpen, setBusinessModalOpen] = useState(false);
 
     const handleProfileSave = async (formData) => {
-        try {
-            await putRequest("user/profile/update", formData, tokens.access, true);
-            const updatedProfileData = await getRequest("user/profile/", tokens.access);
-            dispatch(setProfile(updatedProfileData));
-            setModalOpen(false);
-        } catch (error) {
-            console.error("Failed to update profile:", error);
-        }
+        await editProfile(formData, setModalOpen, dispatch)
     };
 
     const handleBusinessSave = async (formData) => {
-        try {
-            await postRequest("businesses/", formData, tokens.access, true);
-            const userBusinesses = await getRequest("businesses/", tokens.access);
-            const allBusinesses = await getRequest("all_businesses/", tokens.access);
-
-            dispatch(setAllBusinesses(allBusinesses));
-            dispatch(setBusinesses(userBusinesses));
-
-            setBusinessModalOpen(false); 
-        } catch (error) {
-            console.error("Failed to save business:", error);
-        }
+        await createBusiness(formData, dispatch, setBusinessModalOpen)
     };
 
     useEffect(() => {
-        const fetchUserBusinesses = async () => {
-            try {
-                const userBusinesses = await getRequest("businesses/", tokens.access);
-                dispatch(setBusinesses(userBusinesses));
-            } catch (error) {
-                console.error("Failed to fetch user businesses:", error);
-            }
-        };
-        if (tokens.access) {
-            fetchUserBusinesses();
+        if (tokens.access){
+            getUserBusinesses(dispatch)
         }
+        else {
+            dispatch(setProfile(null))
+        }
+        
     }, [tokens.access]);
 
     if (!profile) {

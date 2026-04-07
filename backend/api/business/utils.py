@@ -1,5 +1,6 @@
 from .models import Business, Service
 from rest_framework.exceptions import NotFound
+import os
 
 def get_business(view):
     business_pk = view.kwargs.get('business_pk')
@@ -22,3 +23,16 @@ def get_service(view):
         return Service.objects.get(pk=service_pk)
     except Service.DoesNotExist:
         raise NotFound('Service not found.')
+    
+
+
+def _remove_file(field):
+    if not field:
+        return
+
+    try:
+        if field.name and hasattr(field, "path"):
+            if os.path.isfile(field.path):
+                os.remove(field.path)
+    except Exception:
+        pass
