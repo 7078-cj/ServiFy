@@ -5,7 +5,7 @@ import StarRating from "./StarRating"
 import { useSelector } from "react-redux"
 import { Button } from "../ui/button"
 
-const BASE_URL = import.meta.env.VITE_MEDIA_URL
+
 const media_url = import.meta.env.VITE_MEDIA_URL;
 
 export default function BusinessHeader({ business, setBusinessModalOpen }) {

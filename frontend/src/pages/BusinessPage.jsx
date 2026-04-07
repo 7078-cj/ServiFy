@@ -12,6 +12,9 @@ import BusinessPageSkeleton from "../components/business/BusinessPageSkeleton"
 import AddUpdateBusinessModal from "../components/business/AddUpdateBusinessModal"
 import { updateInAllBusiness } from "../features/business/allBusinessSlice"
 import { updateBusiness } from "../features/business/businessSlice"
+import AddUpdateServiceModal from "../components/business/AddUpdateServiceModal"
+import { Button } from "../components/ui/button"
+import { Plus } from "lucide-react"
 
 
 
@@ -23,8 +26,22 @@ export default function BusinessPage() {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
     const [businessModalOpen, setBusinessModalOpen] = useState(false);
+    const [servicesModalOpen, setServicesModalOpen] = useState(false);
     const dispatch = useDispatch();
     const user = JSON.parse(localStorage.getItem("user")) || null
+
+    const fetchBusiness = async () => {
+        setLoading(true)
+        setError(null)
+        try {
+            const res = await getRequest(`businesses/${id}/`, tokens.access)
+            setBusiness(res)
+        } catch {
+            setError("Failed to load business details.")
+        } finally {
+            setLoading(false)
+        }
+    }
 
     const handleBusinessSave = async (formData) => {
         try {
@@ -82,19 +99,24 @@ export default function BusinessPage() {
         }
     }
 
-    useEffect(() => {
-        const fetchBusiness = async () => {
-        setLoading(true)
-        setError(null)
+    const handleServiceSave = async (formData) => {
         try {
-            const res = await getRequest(`businesses/${id}/`, tokens.access)
-            setBusiness(res)
-        } catch {
-            setError("Failed to load business details.")
-        } finally {
-            setLoading(false)
+            const res = await postRequest(
+                `businesses/${id}/services/`,
+                formData,
+                tokens.access,
+                true
+            )
+            fetchBusiness()
+            setServicesModalOpen(false)
+        } catch (err) {
+            console.error("Failed to save service:", err)
         }
-        }
+
+    }
+
+    useEffect(() => {
+        
         fetchBusiness()
     }, [id])
 
@@ -144,7 +166,13 @@ export default function BusinessPage() {
                 onUpload={handleUpload}
                 onDelete={handleDelete}
             />
-            <ServicesList services={services} />
+            {isOwner &&
+                <Button variant="outline" onClick={() => setServicesModalOpen(true)}>
+                    <Plus className="mr-2" size={16} />
+                    Add Service
+                </Button>
+            }
+            <ServicesList services={services} owner={business.owner} businessId={id} fetchBusiness={fetchBusiness} />
             <ReviewsList reviews={reviews} />
 
             {!services?.length && !reviews?.length && (
@@ -160,6 +188,11 @@ export default function BusinessPage() {
                 open={businessModalOpen}
                 onClose={() => setBusinessModalOpen(false)}
                 onSave={handleBusinessSave} 
+            />
+            <AddUpdateServiceModal
+                open={servicesModalOpen}
+                onClose={() => setServicesModalOpen(false)}
+                onSave={handleServiceSave}
             />
         </div>
     )
