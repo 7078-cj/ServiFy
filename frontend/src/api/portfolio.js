@@ -1,55 +1,57 @@
-import { deleteRequest, getRequest, postRequest, putRequest } from "../utils/reqests/requests";
+import { deleteRequest, getRequest, postRequest } from "../utils/reqests/requests";
+import { requireToken } from "./access";
 
-const token = JSON.parse(localStorage.getItem("authTokens")) || null
+export async function uploadPortfolio(businessId, files, setBusiness = null) {
+    const token = requireToken(); 
 
-export async function uploadPortfolio(businessId, files, setBusiness=null) {
     if (setBusiness) {
-        const formData = new FormData()
+        const formData = new FormData();
 
         files.forEach(file => {
-            formData.append("photos", file) 
-        })
+            formData.append("photos", file);
+        });
 
-        await postRequest(
-            `businesses/${businessId}/portfolios/`,
-            formData,
-            token.access,
-            true
-        ).then(res => {
-            getRequest(`businesses/${businessId}/`, token.access).then(data => {
-                setBusiness(data)
-            }).catch(err => {
-                console.error("Fetch business failed:", err)
-            })
-        }).catch(err => {
-            console.error("Upload failed:", err)
-        })}
+        try {
+            await postRequest(
+                `businesses/${businessId}/portfolios/`,
+                formData,
+                token,
+                true
+            );
+
+            const data = await getRequest(`businesses/${businessId}/`, token);
+            setBusiness(data);
+        } catch (err) {
+            console.error("Upload or fetch failed:", err);
+        }
+    }
+
     return postRequest(
         `businesses/${businessId}/portfolios/`,
         files,
-        token.access,
+        token,
         true
     );
 }
 
-export async function deletePortfolioPhoto(businessId, photoId, setBusiness=null) {
+export async function deletePortfolioPhoto(businessId, photoId, setBusiness = null) {
+    const token = requireToken(); 
     if (setBusiness) {
-        await deleteRequest(
-            `businesses/${businessId}/portfolios/${photoId}/`,
-            token.access
-        ).then(() => {
-            getRequest(`businesses/${businessId}/`, token.access).then(data => {
-                setBusiness(data)
-            }).catch(err => {
-                console.error("Fetch business failed:", err)
-            })
+        try {
+            await deleteRequest(
+                `businesses/${businessId}/portfolios/${photoId}/`,
+                token
+            );
+
+            const data = await getRequest(`businesses/${businessId}/`, token);
+            setBusiness(data);
+        } catch (err) {
+            console.error("Delete or fetch failed:", err);
         }
-        ).catch(err => {
-            console.error("Delete failed:", err)
-        })
     }
+
     return deleteRequest(
         `businesses/${businessId}/portfolios/${photoId}/`,
-        token.access
+        token
     );
 }
