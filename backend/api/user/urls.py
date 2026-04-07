@@ -3,7 +3,7 @@ from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
-from .views import (registerUser, 
+from .views import (AllBusinessBookingListView, BusinessBookingListView, registerUser, 
                     MyTokenObtainPairView, 
                     test, 
                     request_password_reset, 
@@ -39,9 +39,20 @@ urlpatterns = [
     ),
     
     path(
-        'services/<int:service_pk>/bookings/<int:pk>/',
+        "bookings/<int:pk>/",
         BookingDetailView.as_view(),
-        name='booking-detail'
+        name="booking-detail"
     ),
+    
+    path(
+        "business/bookings/",
+        AllBusinessBookingListView.as_view(),
+        name="business-bookings"
+    ),
+    path(
+    "business/<int:business_id>/bookings/",
+        BusinessBookingListView.as_view(),
+        name="business-bookings"
+    )
     
 ]

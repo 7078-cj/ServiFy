@@ -12,7 +12,7 @@ from ..rate_limit.TestThrottle import TestThrottle
 from rest_framework import status
 from .utils import generate_pin, send_reset_email
 from django.core.cache import cache
-from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
+from rest_framework.generics import ListAPIView, ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from .models import Location, Booking
 from ..business.models import Service
 from .serializers import LocationSerializer
@@ -20,6 +20,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import viewsets, permissions
 from ..business.utils import get_service
 from rest_framework import viewsets, permissions
+from rest_framework.exceptions import PermissionDenied
 
 
 class IsBookingOwner(permissions.BasePermission):
@@ -239,20 +240,25 @@ class BookingListCreateView(ListCreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_service(self):
-        if not hasattr(self, '_service'):             
-            self._service = get_service(self)           
-        return self._service
+        service_id = self.kwargs.get("service_id")
+        try:
+            return Service.objects.get(id=service_id)
+        except Service.DoesNotExist:
+            raise PermissionDenied("Service not found")
 
     def get_queryset(self):
         return (
             Booking.objects
-            .filter(user=self.request.user, service=self.get_service())  
-            .select_related('user', 'service', 'service__provider')
+            .filter(
+                user=self.request.user,
+                service=self.get_service()
+            )
+            .select_related('user', 'service', 'service__business')
             .order_by('-created_at')
         )
 
     def perform_create(self, serializer):
-        serializer.save(                  
+        serializer.save(
             user=self.request.user,
             service=self.get_service()
         )
@@ -266,5 +272,34 @@ class BookingDetailView(RetrieveUpdateDestroyAPIView):
         return (
             Booking.objects
             .filter(user=self.request.user)
-            .select_related('user', 'service', 'service__provider')
+            .select_related('user', 'service', 'service__business')
+        )
+        
+class AllBusinessBookingListView(ListAPIView):
+    serializer_class = BookingSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return (
+            Booking.objects
+            .filter(service__business__owner=self.request.user)
+            .select_related('user', 'service', 'service__business')
+            .order_by('-created_at')
+        )
+
+class BusinessBookingListView(ListAPIView):
+    serializer_class = BookingSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        business_id = self.kwargs.get("business_id")
+
+        return (
+            Booking.objects
+            .filter(
+                service__business_id=business_id,
+                service__business__owner=self.request.user
+            )
+            .select_related('user', 'service', 'service__business')
+            .order_by('-created_at')
         )
