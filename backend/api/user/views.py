@@ -270,9 +270,22 @@ class BookingDetailView(RetrieveUpdateDestroyAPIView):
     def get_queryset(self):
         return (
             Booking.objects
-            .filter(user=self.request.user)
+            .filter(service__business__owner=self.request.user)
             .select_related('user', 'service', 'service__business')
         )
+    
+    def perform_update(self, serializer):
+        booking = self.get_object()
+        new_status = self.request.data.get("status")
+
+        if new_status not in ["approved", "rejected", "completed"]:
+            raise PermissionDenied("Invalid status update")
+
+        if booking.service.business.owner != self.request.user:
+            raise PermissionDenied("Only the business owner can update the booking status")
+
+        serializer.save(status=new_status, partial=True)
+        
         
 class AllBusinessBookingListView(ListAPIView):
     serializer_class = BookingSerializer

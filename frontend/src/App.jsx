@@ -13,6 +13,8 @@ import Test from "./pages/Test";
 import Header from "./components/Header";
 import Profile from "./pages/Profile";
 import BusinessPage from "./pages/BusinessPage";
+import Bookings from "./pages/Bookings";
+import BusinessBookingsDashboard from "./pages/BusinessBookingsDashboard";
 
 
 function AppContent() {
@@ -28,6 +30,7 @@ function AppContent() {
   const navItems = [
     { name: "Explore", path: "/" },
     { name: "Bookings", path: "/bookings" },
+    { name: "Business Dashboard", path: "/business/bookings" },
     {name : "Profile", path: "/profile"}
   ];  
 
@@ -49,6 +52,8 @@ function AppContent() {
 
         <Route element={<PrivateRoutes />}>
           <Route path="/" element={<DashBoard />} />
+          <Route path="/bookings" element={<Bookings />} />
+          <Route path="/business/bookings" element={<BusinessBookingsDashboard />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/business/:id" element={<BusinessPage />} />
           <Route path="/test" element={<Test />} />

@@ -1,4 +1,4 @@
-import { deleteRequest, getRequest, postRequest, putRequest } from "../utils/reqests/requests";
+import { deleteRequest, getRequest, patchRequest, postRequest, putRequest } from "../utils/reqests/requests";
 import { requireToken } from "./access"
 
 export async function createBooking(serviceId, data, setLoading, onSuccess) {
@@ -76,7 +76,7 @@ export async function updateBooking(bookingId, data, setLoading, onSuccess) {
     const access = requireToken()
     try {
         setLoading(true)
-        await putRequest(
+        await patchRequest(
             `user/bookings/${bookingId}/`,
             data,
             access,
