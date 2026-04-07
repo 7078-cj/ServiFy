@@ -33,7 +33,7 @@ urlpatterns = [
     path('profile/update', updateProfile, name='update-profile'),
     
     path(
-        'services/<int:service_pk>/bookings/',
+        'services/<int:service_id>/bookings/',
         BookingListCreateView.as_view(),
         name='booking-list-create'
     ),

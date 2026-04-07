@@ -19,7 +19,7 @@ export default function BusinessCard({ business, onClick, isFocused, onFocusTogg
     const coverPhoto = logo
         ? `${BASE_URL}${logo}`
         : portfolio?.[0]
-        ? `${BASE_URL}${portfolio[0]}`
+        ? `${BASE_URL}${portfolio[0].photo}`
         : null;
 
     const reviewCount = reviews?.length ?? 0;

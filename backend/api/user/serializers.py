@@ -66,11 +66,10 @@ class BookingSerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'user',
-            'service',
             'service_name',
             'date',
             'status',
             'status_display',
             'created_at',
         ]
-        read_only_fields = ['id', 'user', 'status', 'created_at']
+        read_only_fields = ['id', 'user', 'status', 'created_at','service', 'service_name', 'status_display']

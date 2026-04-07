@@ -43,10 +43,9 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 
 class ServiceSerializer(serializers.ModelSerializer):
-    bookings = BookingSerializer(many=True, read_only=True)
     class Meta:
         model = Service
-        fields = ['id', 'name', 'description', 'thumbnail', 'price','bookings']
+        fields = ['id', 'name', 'description', 'thumbnail', 'price']
 
 
 class BusinessSerializer(serializers.ModelSerializer):

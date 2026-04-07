@@ -1,8 +1,9 @@
 import { Pencil, Trash2 } from "lucide-react"
-import AddUpdateServiceModal from "./AddUpdateServiceModal";
-import { useState } from "react";
-import { putRequest, deleteRequest } from "../../utils/reqests/requests"
-import { deleteService, updateService } from "../../api/services";
+import AddUpdateServiceModal from "./AddUpdateServiceModal"
+import CreateBookingModal from "./CreateBookingModal"
+import { useState } from "react"
+import { deleteService, updateService } from "../../api/services"
+import { createBooking } from "../../api/bookings"
 
 const media_url = import.meta.env.VITE_MEDIA_URL;
 
@@ -11,11 +12,11 @@ export default function ServiceCard({
     isOwner,
     onPreview,
     businessId,
-    onRefresh 
+    onRefresh
 }) {
-    const [showEditModal, setShowEditModal] = useState(false);
-    const [loading, setLoading] = useState(false);
-
+    const [showEditModal, setShowEditModal] = useState(false)
+    const [showBookingModal, setShowBookingModal] = useState(false)
+    const [loading, setLoading] = useState(false)
 
     const handleUpdate = async (formData) => {
         await updateService(
@@ -28,7 +29,6 @@ export default function ServiceCard({
         )
     }
 
-    
     const handleDelete = async () => {
         const confirmDelete = window.confirm("Delete this service?")
         if (!confirmDelete) return
@@ -41,9 +41,22 @@ export default function ServiceCard({
         )
     }
 
+    const handleCreateBooking = async (data) => {
+        await createBooking(
+            svc.id,
+            data,
+            setLoading,
+            () => {
+                setShowBookingModal(false)
+                onRefresh?.()
+            }
+        )
+    }
+
     return (
         <div className="flex gap-4 bg-gray-50 rounded-2xl p-4 hover:shadow-md transition-all group">
-            {/* Image */}
+            
+            {/* IMAGE */}
             <div
                 className="w-28 h-28 shrink-0 rounded-xl overflow-hidden bg-gray-200 cursor-pointer"
                 onClick={() => svc.thumbnail && onPreview(svc)}
@@ -61,15 +74,17 @@ export default function ServiceCard({
                 )}
             </div>
 
-            {/* Content */}
+            {/* CONTENT */}
             <div className="flex-1 flex flex-col justify-between">
+                
+                {/* TOP */}
                 <div>
                     <div className="flex justify-between items-start">
                         <h3 className="text-base font-semibold text-gray-800">
                             {svc.name}
                         </h3>
 
-                        {/* Actions */}
+                        {/* ACTIONS (OWNER ONLY) */}
                         {isOwner && (
                             <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition">
                                 <button
@@ -98,8 +113,10 @@ export default function ServiceCard({
                     )}
                 </div>
 
-                {/* Bottom Meta */}
+                {/* BOTTOM */}
                 <div className="flex items-end justify-between mt-3">
+                    
+                    {/* META */}
                     <div className="flex gap-6 text-xs text-gray-400">
                         {svc.price && (
                             <div>
@@ -121,16 +138,36 @@ export default function ServiceCard({
                             </div>
                         )}
                     </div>
+
+                    {/* BOOK BUTTON (NON-OWNER) */}
+                    {!isOwner && (
+                        <button
+                            onClick={() => setShowBookingModal(true)}
+                            disabled={loading}
+                            className="text-sm px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                        >
+                            Book
+                        </button>
+                    )}
                 </div>
             </div>
 
-            
+            {/* EDIT MODAL */}
             <AddUpdateServiceModal
                 open={showEditModal}
                 onClose={() => setShowEditModal(false)}
                 service={svc}
                 onSave={handleUpdate}
                 loading={loading}
+            />
+
+            {/* BOOKING MODAL */}
+            <CreateBookingModal
+                open={showBookingModal}
+                onClose={() => setShowBookingModal(false)}
+                onSubmit={handleCreateBooking}
+                loading={loading}
+                service={svc}
             />
         </div>
     )
