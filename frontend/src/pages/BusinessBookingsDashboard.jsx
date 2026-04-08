@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { getAllBusinessBookings, updateBooking } from "../api/bookings";
 import MapComponent from "../components/map/MapComponent";
+import businessBookingsListener from "../listeners/businessBookingsListener";
+import { useSelector } from "react-redux";
 
 const normalizeBookings = (payload) => {
     if (Array.isArray(payload)) return payload;
@@ -131,6 +133,7 @@ export default function BusinessBookingsDashboard() {
     const [selectedService, setSelectedService] = useState("all");
     const [selectedStatus, setSelectedStatus] = useState("all");
     const [markerScope, setMarkerScope] = useState("all");
+    const { profile } = useSelector((state) => state.profile);
 
     const fetchBookings = () => {
         getAllBusinessBookings(setRawBookings, setLoading);
@@ -227,6 +230,8 @@ export default function BusinessBookingsDashboard() {
             fetchBookings
         );
     };
+
+    businessBookingsListener(profile?.id, setRawBookings);
 
     return (
         <div className="min-h-screen bg-gray-50 px-4 py-8 sm:px-6 lg:px-8">

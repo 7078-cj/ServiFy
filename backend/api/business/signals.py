@@ -63,7 +63,7 @@ def review_updated(sender, instance, created, **kwargs):
     async_to_sync(channel_layer.group_send)(
         f'business_reviews_{instance.business.id}',
         {
-            "type": "update",
+            "type": "updated",
             "data": data
         }
     )
@@ -74,7 +74,7 @@ def review_updated(sender, instance, created, **kwargs):
         async_to_sync(channel_layer.group_send)(
             f'business_reviews_{instance.business.id}',
             {
-                "type": "create",
+                "type": "created",
                 "data": data
             }
         )

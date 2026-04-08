@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 
 export default function useWebSocket(url, options = {}) {
-    const BASE_URL = process.env.VITE_WS_URL || "ws://localhost:8000"
+    const BASE_URL = import.meta.env.VITE_WS_URL || "ws://localhost:8000"
     const fullUrl = `${BASE_URL}${url}`
     const socketRef = useRef(null)
     const [connected, setConnected] = useState(false)

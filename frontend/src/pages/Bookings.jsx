@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { getBookings } from "../api/bookings";
+import userBookingsListener from "../listeners/userBookingsListener";
+import { useSelector } from "react-redux";
 
 const normalizeBookings = (payload) => {
     if (Array.isArray(payload)) return payload;
@@ -30,12 +32,15 @@ const getStatusClass = (status) => {
 export default function Bookings() {
     const [rawBookings, setRawBookings] = useState([]);
     const [loading, setLoading] = useState(false);
+    const { profile } = useSelector((state) => state.profile);
 
     useEffect(() => {
         getBookings(setRawBookings, setLoading);
     }, []);
 
     const bookings = useMemo(() => normalizeBookings(rawBookings), [rawBookings]);
+
+    userBookingsListener(profile?.id, setRawBookings);
 
     return (
         <div className="min-h-screen bg-gray-50 px-4 py-8 sm:px-6 lg:px-8">
