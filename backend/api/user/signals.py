@@ -29,7 +29,7 @@ def booking_updated(sender, instance, created, **kwargs):
     async_to_sync(channel_layer.group_send)(
         f"user_bookings_{instance.user.id}",
         {
-            "type": "send_booking_update",
+            "type": "update",
             "data": data
         }
     )
@@ -40,7 +40,7 @@ def booking_updated(sender, instance, created, **kwargs):
         async_to_sync(channel_layer.group_send)(
             f"user_business_bookings_{owner_id}",
             {
-                "type": "send_booking_update",
+                "type": "create",
                 "data": data
             }
         )
