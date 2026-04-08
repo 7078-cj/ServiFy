@@ -23,11 +23,7 @@ export default function BusinessHeader({ business, setBusinessModalOpen }) {
         <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-2 mb-1">
             <h1 className="text-xl font-semibold text-gray-900 truncate">{name}</h1>
-            {reviews?.length > 0 && (
-                <Badge variant="secondary" className="text-xs">
-                {reviews.length} {reviews.length === 1 ? "review" : "reviews"}
-                </Badge>
-            )}
+
             </div>
 
             {address && (
