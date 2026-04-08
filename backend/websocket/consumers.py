@@ -25,62 +25,65 @@ class MyWebSocketConsumer(AsyncWebsocketConsumer):
 class UserBusinessBookingsConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.id = self.scope['url_route']['kwargs']['user_id']
-        await self.channel_layer.group_add(
-            f'user_business_bookings_{self.id}',
-            self.channel_name
-        )
+        self.group_name = f'user_business_bookings_{self.id}'
+
+        await self.channel_layer.group_add(self.group_name, self.channel_name)
         await self.accept()
-        await self.send(text_data=json.dumps({
-            'message': 'WebSocket connection established'
-        }))
 
     async def disconnect(self, close_code):
-        await self.channel_layer.group_discard(
-            f'group_{self.id}',
-            self.channel_name
-        )
-        
-        await self.close()
+        await self.channel_layer.group_discard(self.group_name, self.channel_name)
+
+    async def booking_create(self, event):
+        await self.send(text_data=json.dumps({
+            "type": "created",
+            "data": event["data"]
+        }))
 
 class UserBookingsConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.id = self.scope['url_route']['kwargs']['user_id']
-        await self.channel_layer.group_add(
-            f'user_bookings_{self.id}',
-            self.channel_name
-        )
+        self.group_name = f'user_bookings_{self.id}'
+
+        await self.channel_layer.group_add(self.group_name, self.channel_name)
         await self.accept()
-        await self.send(text_data=json.dumps({
-            'message': 'WebSocket connection established'
-        }))
 
     async def disconnect(self, close_code):
-        await self.channel_layer.group_discard(
-            f'group_{self.id}',
-            self.channel_name
-        )
-        
-        await self.close()
+        await self.channel_layer.group_discard(self.group_name, self.channel_name)
+
+    async def booking_update(self, event):
+        await self.send(text_data=json.dumps({
+            "type": "updated",
+            "data": event["data"]
+        }))
         
 class BusinessReviewsConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.id = self.scope['url_route']['kwargs']['business_id']
-        await self.channel_layer.group_add(
-            f'business_reviews_{self.id}',
-            self.channel_name
-        )
+        self.group_name = f'business_reviews_{self.id}'
+
+        await self.channel_layer.group_add(self.group_name, self.channel_name)
         await self.accept()
-        await self.send(text_data=json.dumps({
-            'message': 'WebSocket connection established'
-        }))
 
     async def disconnect(self, close_code):
-        await self.channel_layer.group_discard(
-            f'business_reviews_{self.id}',
-            self.channel_name
-        )
-        
-        await self.close()
+        await self.channel_layer.group_discard(self.group_name, self.channel_name)
+
+    async def review_update(self, event):
+        await self.send(text_data=json.dumps({
+            "type": "updated",
+            "data": event["data"]
+        }))
+
+    async def review_create(self, event):
+        await self.send(text_data=json.dumps({
+            "type": "created",
+            "data": event["data"]
+        }))
+
+    async def review_delete(self, event):
+        await self.send(text_data=json.dumps({
+            "type": "deleted",
+            "data": event["data"]
+        }))
 
 
     

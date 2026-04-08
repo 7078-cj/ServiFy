@@ -63,18 +63,17 @@ def review_updated(sender, instance, created, **kwargs):
     async_to_sync(channel_layer.group_send)(
         f'business_reviews_{instance.business.id}',
         {
-            "type": "updated",
+            "type": "review_update",
             "data": data
         }
     )
 
     if created:
-        owner_id = instance.service.business.owner.id
 
         async_to_sync(channel_layer.group_send)(
             f'business_reviews_{instance.business.id}',
             {
-                "type": "created",
+                "type": "review_create",
                 "data": data
             }
         )
@@ -84,7 +83,7 @@ def review_deleted(sender, instance, **kwargs):
     async_to_sync(channel_layer.group_send)(
         f'business_reviews_{instance.business.id}',
         {
-            "type": "delete",
+            "type": "review_delete",
             "data": {"id": instance.id}
         }
     )
