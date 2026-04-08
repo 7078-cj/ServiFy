@@ -12,7 +12,7 @@ export default function useWebSocket(url, options = {}) {
         onClose,
         onError,
         onMessage,
-        reconnect = true,
+        reconnect = false,
         reconnectInterval = 3000,
     } = options
 

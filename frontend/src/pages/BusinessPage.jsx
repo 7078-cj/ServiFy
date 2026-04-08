@@ -63,7 +63,6 @@ export default function BusinessPage() {
             id,
             formData,
             null,
-            fetchBusiness
         )
     }
 
@@ -73,7 +72,6 @@ export default function BusinessPage() {
             reviewId,
             formData,
             null,
-            fetchBusiness
         )
     }
 
@@ -81,8 +79,6 @@ export default function BusinessPage() {
         return await deleteReview(
             id,
             reviewId,
-            fetchBusiness
-
         )
     }
 
@@ -145,11 +141,13 @@ export default function BusinessPage() {
             }
             <ServicesList services={services} owner={business.owner} businessId={id} fetchBusiness={fetchBusiness} />
             <ReviewsList 
-            reviews={reviews} 
-            onAddReview={handleAddReview}
-            onUpdateReview={handleUpdateReview} 
-            onDeleteReview={handleDeleteReview} 
-            currentUser={user} />
+                reviews={reviews} 
+                onAddReview={handleAddReview}
+                onUpdateReview={handleUpdateReview} 
+                onDeleteReview={handleDeleteReview} 
+                currentUser={user}
+                businessId={id}
+            />
 
             {!services?.length  && (
                 <p className="text-center text-sm text-gray-400 py-4">

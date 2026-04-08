@@ -1,8 +1,9 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import BusinessAvatar from "./BusinessAvatar"
 import StarRating from "./StarRating"
 import AddReview from "./AddReview"
 import { Pencil, Trash2, X } from "lucide-react" 
+import {useReviewListener } from "../../listeners/reviewListener"
 
 const media_url = import.meta.env.VITE_MEDIA_URL;
 
@@ -11,21 +12,29 @@ export default function ReviewsList({
     onAddReview, 
     onUpdateReview, 
     onDeleteReview, 
-    currentUser 
+    currentUser,
+    businessId
 }) {
     const [editingId, setEditingId] = useState(null);
+    const [rawReviews, setRawReviews] = useState(reviews || []);
+
+    useEffect(() => {
+        setRawReviews(reviews || []);
+    }, [reviews]);
 
     const handleUpdate = async (reviewId, data) => {
         await onUpdateReview(reviewId, data);
         setEditingId(null); 
     };
 
+    useReviewListener(businessId, setRawReviews);
+
     return (
         <section className="max-w-2xl mx-auto py-8 px-4">
             <div className="flex items-center justify-between mb-6">
                 <h2 className="text-lg font-bold text-gray-900">User Reviews</h2>
                 <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-bold">
-                    {reviews?.length || 0} Total
+                    {rawReviews?.length || 0} Total
                 </span>
             </div>
 
@@ -33,7 +42,7 @@ export default function ReviewsList({
             {!editingId && <AddReview onSubmit={onAddReview} />}
 
             <div className="space-y-4">
-                {reviews.map((rev, i) => {
+                {rawReviews.map((rev, i) => {
                     const isAuthor = currentUser?.id === rev.author?.id;
                     const isEditing = editingId === rev.id;
 
