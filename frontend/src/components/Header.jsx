@@ -55,7 +55,7 @@ export default function Header({navItems, isProvider}) {
                             </button>
 
                             {/* User */}
-                            <div className="flex items-center gap-2.5 bg-gray-50 border border-gray-100 rounded-full px-3 py-2 shrink-0">
+                            {user && <div className="flex items-center gap-2.5 bg-gray-50 border border-gray-100 rounded-full px-3 py-2 shrink-0">
                                 <BusinessAvatar
                                                 imageUrl={user.profile.profile_image ? `${media_url}${user.profile.profile_image}` : null}
                                                 name={`${user.first_name} ${user.last_name}`}
@@ -64,7 +64,7 @@ export default function Header({navItems, isProvider}) {
                                 <p className="text-xs font-semibold text-gray-700">
                                     {user.first_name} {user.last_name}
                                 </p>
-                            </div>
+                            </div>}
 
                             {/* Hamburger — mobile only */}
                             <button
