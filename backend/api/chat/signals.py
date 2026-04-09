@@ -5,7 +5,39 @@ from channels.layers import get_channel_layer
 
 from .models import Conversation, Message
 from ..business.utils import _remove_file
-from .serializers import MessageSerializer
+from .serializers import MessageSerializer, ConversationSerializer
+
+@receiver(post_save, sender=Conversation)
+def conversation_created(sender, instance, created, **kwargs):
+    data = ConversationSerializer(instance).data
+    channel_layer = get_channel_layer()
+
+    participants = instance.participants.all()
+
+    for user in participants:
+        async_to_sync(channel_layer.group_send)(
+            f"user_{user.id}_conversation",
+            {
+                "type": "new_conversation",
+                "data": data,
+            }
+        )
+
+@receiver(post_delete, sender=Conversation)
+def conversation_deleted(sender, instance, **kwargs):
+    data = {"id": instance.id}
+    channel_layer = get_channel_layer()
+
+    participants = instance.participants.all()
+
+    for user in participants:
+        async_to_sync(channel_layer.group_send)(
+            f"user_{user.id}_conversation",
+            {
+                "type": "delete_conversation",
+                "data": data,
+            }
+        )
 
 @receiver(post_save, sender=Message)
 def message_created(sender, instance, created, **kwargs):

@@ -110,7 +110,31 @@ class ChatConsumer(AsyncWebsocketConsumer):
         
     async def delete_message(self, event):
         await self.send(text_data=json.dumps({
-            "type": "delete_message",
+            "type": "deleted",
+            "data":event['data']
+        }))
+        
+class ConversationConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        self.id = self.scope['url_route']['kwargs']['user_id']
+        self.group_name = f'user_{self.id}_conversation'
+
+        await self.channel_layer.group_add(self.group_name, self.channel_name)
+        await self.accept()
+
+    async def disconnect(self, close_code):
+        await self.channel_layer.group_discard(self.group_name, self.channel_name)
+        
+    async def new__conversation(self, event):
+        await self.send(text_data=json.dumps({
+            "type": "created",
+            "data":event['data']
+        }))
+    
+        
+    async def delete__conversation(self, event):
+        await self.send(text_data=json.dumps({
+            "type": "deleted",
             "data":event['data']
         }))
 
