@@ -321,7 +321,6 @@ export default function BusinessBookingsDashboard() {
                                     <details
                                         key={businessGroup.key}
                                         className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden"
-                                        open
                                     >
                                         <summary className="cursor-pointer select-none px-4 py-4 sm:px-6 bg-gray-50 flex items-center justify-between gap-3">
                                             <div>

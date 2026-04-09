@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { Bell, User, Menu, X } from "lucide-react";
 import { NavLink } from "react-router-dom";
+import BusinessAvatar from "./business/BusinessAvatar";
+
+const media_url = import.meta.env.VITE_MEDIA_URL;
 
 export default function Header({navItems, isProvider}) {
     const [menuOpen, setMenuOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
+    const user = JSON.parse(localStorage.getItem("user")) || null
 
     useEffect(() => {
         const onScroll = () => setScrolled(window.scrollY > 10);
@@ -51,9 +55,16 @@ export default function Header({navItems, isProvider}) {
                             </button>
 
                             {/* User */}
-                            <button className="flex items-center justify-center w-10 h-10 rounded-xl bg-gray-50 hover:bg-blue-50 text-gray-500 hover:text-blue-600 transition-all duration-200">
-                                <User size={22} strokeWidth={1.8} />
-                            </button>
+                            <div className="flex items-center gap-2.5 bg-gray-50 border border-gray-100 rounded-full px-3 py-2 shrink-0">
+                                <BusinessAvatar
+                                                imageUrl={user.profile.profile_image ? `${media_url}${user.profile.profile_image}` : null}
+                                                name={`${user.first_name} ${user.last_name}`}
+                                                size="sm"
+                                                />
+                                <p className="text-xs font-semibold text-gray-700">
+                                    {user.first_name} {user.last_name}
+                                </p>
+                            </div>
 
                             {/* Hamburger — mobile only */}
                             <button
@@ -115,13 +126,6 @@ export default function Header({navItems, isProvider}) {
                                 {item.name}
                             </NavLink>
                         ))}
-                        <button
-                            style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-                            className="mt-4 text-sm font-semibold bg-blue-600 text-white py-2.5 rounded-lg
-                                hover:bg-blue-700 transition-colors duration-200"
-                        >
-                            Join as Provider
-                        </button>
                     </div>
                 )}
             </header>
