@@ -1,6 +1,6 @@
 from django.core.cache import cache
 from rest_framework.decorators import api_view, throttle_classes
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets, permissions, status
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import ValidationError
@@ -42,9 +42,9 @@ class ConversationListCreateView(ListCreateAPIView):
             .order_by("-updated_at")
         )
 
-    def perform_create(self, serializer):
-        user = self.request.user
-        provider_id = self.request.data.get("provider_id")
+    def create(self, request, *args, **kwargs):
+        user = request.user
+        provider_id = request.data.get("provider_id")
 
         if not provider_id:
             raise ValidationError({"provider_id": "This field is required."})
@@ -61,19 +61,19 @@ class ConversationListCreateView(ListCreateAPIView):
             Conversation.objects
             .filter(participants=user)
             .filter(participants=other_user)
-            .annotate(num_participants=Count("participants"))
-            .filter(num_participants=2)
             .first()
         )
+        
+        print("EXISTING:", existing)
 
         if existing:
-            raise ValidationError({
-                "detail": "Conversation already exists.",
-                "conversation_id": existing.id
-            })
+            serializer = self.get_serializer(existing)
+            return Response(serializer.data, status=status.HTTP_200_OK)
 
-        conversation = serializer.save()
+        conversation = Conversation.objects.create()
         conversation.participants.set([user, other_user])
+        serializer = self.get_serializer(conversation)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 @api_view(["DELETE"])
 @permission_classes([IsAuthenticated])
