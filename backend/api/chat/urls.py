@@ -3,7 +3,7 @@ from .views import ConversationListCreateView, MessageDetailView, delete_convers
 
 urlpatterns = [
     path(
-        "conversations/<int:participant_pk>/",
+        "conversations/",
         ConversationListCreateView.as_view(),
         name="conversation-list-create"
     ),

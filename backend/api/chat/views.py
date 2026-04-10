@@ -21,6 +21,7 @@ from .serializers import ConversationSerializer
 from .utils import get_participant
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
+from django.db.models import Count
 
 class IsSenderOrReadOnly(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
@@ -41,17 +42,27 @@ class ConversationListCreateView(ListCreateAPIView):
             .order_by("-updated_at")
         )
 
-    def get_participant(self):
-        return get_participant(self)
-
     def perform_create(self, serializer):
         user = self.request.user
-        other_user = self.get_participant()
+        provider_id = self.request.data.get("provider_id")
+
+        if not provider_id:
+            raise ValidationError({"provider_id": "This field is required."})
+
+        try:
+            other_user = User.objects.get(id=provider_id)
+        except User.DoesNotExist:
+            raise ValidationError({"provider_id": "User not found."})
+
+        if user == other_user:
+            raise ValidationError({"detail": "You cannot chat with yourself."})
 
         existing = (
             Conversation.objects
             .filter(participants=user)
             .filter(participants=other_user)
+            .annotate(num_participants=Count("participants"))
+            .filter(num_participants=2)
             .first()
         )
 

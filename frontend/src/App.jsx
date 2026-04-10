@@ -58,6 +58,7 @@ function AppContent() {
           <Route path="/business/bookings" element={<BusinessBookingsDashboard />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/business/:id" element={<BusinessPage />} />
+          <Route path="/chats/:id" element={<Chats />} />
           <Route path="/chats" element={<Chats />} />
           <Route path="/test" element={<Test />} />
         </Route>

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react"
+import { requireToken } from "../api/access"
 
 export default function useWebSocket(url, options = {}) {
     const BASE_URL = import.meta.env.VITE_WS_URL || "ws://localhost:8000"
@@ -6,6 +7,7 @@ export default function useWebSocket(url, options = {}) {
     const socketRef = useRef(null)
     const [connected, setConnected] = useState(false)
     const [lastMessage, setLastMessage] = useState(null)
+    const token = requireToken()
 
     const {
         onOpen,
@@ -21,7 +23,7 @@ export default function useWebSocket(url, options = {}) {
         let reconnectTimeout
 
         const connect = () => {
-            socket = new WebSocket(fullUrl)
+            socket = new WebSocket(`${fullUrl}?token=${token}`)
             socketRef.current = socket
 
             socket.onopen = () => {
