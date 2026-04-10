@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react'
 import { fetchMessages } from '../../api/chat'
 import MessageCard from './MessageCard'
 import AddMessage from './AddMessage'
+import { chatListener } from '../../listeners/chatListener'
 
 export default function Messages({ conversation }) {
     const [messages, setMessages] = useState([])
@@ -24,6 +25,8 @@ export default function Messages({ conversation }) {
         setMessages([])
         loadMessages()
     }, [conversation.id])
+
+    chatListener(conversation.id,setMessages)
 
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' })

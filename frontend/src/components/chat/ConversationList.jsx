@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import { fetchConversations } from '../../api/conversation'
 import ConversationCard from './ConversationCard'
+import { conversationListener } from '../../listeners/conversationListener'
 
 export default function ConversationList({ selectedConversation, setSelectedConversation }) {
     const [conversations, setConversations] = useState([])
     const [loading, setLoading] = useState(true)
+    const user = JSON.parse(localStorage.getItem("user")) || null
 
     useEffect(() => {
         const loadConversations = async () => {
@@ -19,6 +21,8 @@ export default function ConversationList({ selectedConversation, setSelectedConv
         }
         loadConversations()
     }, [])
+
+    conversationListener(user.id, setConversations)
 
     return (
         <div className='w-80 h-full bg-white border-r border-gray-200 flex flex-col'>
