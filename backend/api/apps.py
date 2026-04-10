@@ -8,3 +8,4 @@ class ApiConfig(AppConfig):
     def ready(self):
         import api.user.signals
         import api.business.signals
+        import api.chat.signals

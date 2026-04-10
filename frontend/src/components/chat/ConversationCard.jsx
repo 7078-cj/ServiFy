@@ -1,8 +1,7 @@
 import React from 'react'
 
 export default function ConversationCard({ conversation, isSelected, onClick }) {
-    const { participants, messages } = conversation
-    const lastMessage = messages?.[messages.length - 1]
+    const { participants, last_message } = conversation
     const names = participants?.map(p => p.username).join(', ')
 
     const initials = participants
@@ -22,7 +21,7 @@ export default function ConversationCard({ conversation, isSelected, onClick }) 
             <div className='flex-1 min-w-0'>
                 <p className='text-sm font-medium text-gray-800 truncate'>{names || 'Unknown'}</p>
                 <p className='text-xs text-gray-400 truncate'>
-                    {lastMessage?.content || 'No messages yet'}
+                    {last_message.content || 'No messages yet'}
                 </p>
             </div>
         </div>

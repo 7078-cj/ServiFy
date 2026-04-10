@@ -9,13 +9,23 @@ export function fetchConversations() {
     )
 }
 
-export function createConversation(providerId) {
+export async function createConversation(providerId,onExisting) {
+
     const access = requireToken()
-    return postRequest(
-        `chat/conversations/${providerId}/`,
-        {'null':null},
-        access,
-    )
+        try {
+            return await postRequest(
+                `chat/conversations/`,
+                { provider_id: providerId },
+                access,
+            )
+        } catch (err) {
+            
+            if (err.conversation_id) {
+                onExisting?.(err.conversation_id)
+                return null
+            }
+            throw err
+        }
 }
 
 export function deleteConversation(conversationId) {

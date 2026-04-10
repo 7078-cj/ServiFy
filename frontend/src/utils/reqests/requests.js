@@ -1,5 +1,12 @@
 const API = import.meta.env.VITE_API_URL;
 
+const handleError = async (res, fallback) => {
+    const errorData = await res.json().catch(() => ({}))
+    const error = new Error(errorData.detail || errorData.message || fallback)
+    Object.assign(error, errorData)
+    throw error
+}
+
 export const getRequest = async (endpoint, token = null) => {
     try {
         const res = await fetch(`${API}${endpoint}`, {
@@ -10,10 +17,7 @@ export const getRequest = async (endpoint, token = null) => {
             }
         });
 
-        if (!res.ok) {
-            const errorData = await res.json();
-            throw new Error(errorData.message || "Request failed");
-        }
+        if (!res.ok) await handleError(res, "Request failed")
 
         return await res.json();
 
@@ -29,7 +33,6 @@ export const postRequest = async (endpoint, data = {}, token = null, isForm = fa
             ...(token && { Authorization: `Bearer ${token}` })
         };
 
-        
         if (!isForm) {
             headers["Content-Type"] = "application/json";
         }
@@ -37,14 +40,11 @@ export const postRequest = async (endpoint, data = {}, token = null, isForm = fa
         const res = await fetch(`${API}${endpoint}`, {
             method: "POST",
             headers,
-            credentials: "include", 
+            credentials: "include",
             body: isForm ? data : JSON.stringify(data)
         });
 
-        if (!res.ok) {
-            const errorData = await res.json();
-            throw new Error(errorData.message || "Request failed");
-        }
+        if (!res.ok) await handleError(res, "Request failed")
 
         return await res.json();
 
@@ -60,21 +60,17 @@ export const putRequest = async (endpoint, data = {}, token = null, isForm = fal
             ...(token && { Authorization: `Bearer ${token}` })
         };
 
-        // Only set JSON header if not FormData
         if (!isForm) {
             headers["Content-Type"] = "application/json";
         }
 
         const res = await fetch(`${API}${endpoint}`, {
-            method: "PUT", // 👈 change here
+            method: "PUT",
             headers,
             body: isForm ? data : JSON.stringify(data)
         });
 
-        if (!res.ok) {
-            const errorData = await res.json();
-            throw new Error(errorData.message || "Update failed");
-        }
+        if (!res.ok) await handleError(res, "Update failed")
 
         return await res.json();
 
@@ -100,10 +96,7 @@ export const patchRequest = async (endpoint, data = {}, token = null, isForm = f
             body: isForm ? data : JSON.stringify(data)
         });
 
-        if (!res.ok) {
-            const errorData = await res.json();
-            throw new Error(errorData.message || "Update failed");
-        }
+        if (!res.ok) await handleError(res, "Update failed")
 
         return await res.json();
 
@@ -125,22 +118,14 @@ export const deleteRequest = async (endpoint, token = null) => {
             credentials: "include",
         });
 
-        
-        if (res.status === 204) {
-            return true;
-        }
+        if (res.status === 204) return true
 
-        const data = await res.json().catch(() => null);
+        if (!res.ok) await handleError(res, "Delete failed")
 
-        if (!res.ok) {
-            throw new Error(data?.message || "Delete failed");
-        }
-
-        return data;
+        return await res.json().catch(() => null)
 
     } catch (error) {
         console.error("DELETE REQUEST ERROR:", error);
         throw error;
     }
 };
-

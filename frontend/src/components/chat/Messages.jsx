@@ -47,7 +47,7 @@ export default function Messages({ conversation }) {
                     <p className='text-center text-gray-400 mt-8'>No messages yet. Say hello!</p>
                 ) : (
                     messages.map(msg => (
-                        <MessageCard key={msg.id} message={msg} />
+                        <MessageCard key={msg.id} message={msg} conversationId={conversation.id} />
                     ))
                 )}
                 <div ref={bottomRef} />

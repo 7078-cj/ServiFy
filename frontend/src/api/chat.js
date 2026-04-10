@@ -9,13 +9,13 @@ export function fetchMessages(conversationId) {
     )
 }
 
-export function createMessage(conversationId, formData) {
+export function createMessage(conversationId, formData, isForm) {
     const access = requireToken()
     return postRequest(
         `chat/conversations/${conversationId}/messages/`,
         formData,
         access,
-        true
+        isForm
     )
 }
 
