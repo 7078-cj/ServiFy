@@ -15,6 +15,7 @@ import Profile from "./pages/Profile";
 import BusinessPage from "./pages/BusinessPage";
 import Bookings from "./pages/Bookings";
 import BusinessBookingsDashboard from "./pages/BusinessBookingsDashboard";
+import Chats from "./pages/Chats";
 
 
 function AppContent() {
@@ -31,7 +32,8 @@ function AppContent() {
     { name: "Explore", path: "/" },
     { name: "Bookings", path: "/bookings" },
     { name: "Business Dashboard", path: "/business/bookings" },
-    {name : "Profile", path: "/profile"}
+    {name : "Profile", path: "/profile"},
+    {name : "Chats", path: "/chats"}
   ];  
 
   useEffect(() => {
@@ -56,6 +58,7 @@ function AppContent() {
           <Route path="/business/bookings" element={<BusinessBookingsDashboard />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/business/:id" element={<BusinessPage />} />
+          <Route path="/chats" element={<Chats />} />
           <Route path="/test" element={<Test />} />
         </Route>
       </Routes>
