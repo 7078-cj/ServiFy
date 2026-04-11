@@ -22,7 +22,6 @@ from ..business.utils import get_service
 from rest_framework import viewsets, permissions
 from rest_framework.exceptions import PermissionDenied
 
-from backend.api.user.utils import send_reset_email_async
 
 class IsBookingOwner(permissions.BasePermission):
     """Allow read to booking user, write only to the business owner."""
