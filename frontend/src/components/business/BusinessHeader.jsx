@@ -22,7 +22,7 @@ export default function BusinessHeader({ business, setBusinessModalOpen }) {
     const handleDelete = () => {
         deleteBusiness(id, setDeleting, () => {
             setShowDeleteModal(false)
-            navigate("/businesses")
+            navigate("/")
         })
     }
 
