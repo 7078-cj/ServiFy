@@ -36,3 +36,12 @@ export function deleteMessage(conversationId, messageId) {
         access
     )
 }
+
+export function markMessagesRead(conversationId) {
+    const access = requireToken()
+    return postRequest(
+        `chat/conversations/${conversationId}/read/`,
+        {},
+        access
+    )
+}

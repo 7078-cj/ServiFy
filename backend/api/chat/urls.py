@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import ConversationListCreateView, MessageDetailView, delete_conversation, MessageListCreateView
+from .views import ConversationListCreateView, MessageDetailView, delete_conversation, MessageListCreateView, mark_messages_read
 
 urlpatterns = [
     path(
@@ -22,5 +22,6 @@ urlpatterns = [
         MessageDetailView.as_view(),
         name="message-detail"
     ),
+    path("conversations/<int:conversation_id>/read/", mark_messages_read, name="mark-messages-read"),
 
 ]

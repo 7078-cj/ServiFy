@@ -22,6 +22,8 @@ from .utils import get_participant
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from django.db.models import Count
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 
 class IsSenderOrReadOnly(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
@@ -121,4 +123,38 @@ class MessageDetailView(RetrieveUpdateDestroyAPIView):
     def get_queryset(self):
         conversation_id = self.kwargs["conversation_id"]
         return Message.objects.filter(conversation_id=conversation_id, sender=self.request.user)
-    
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def mark_messages_read(request, conversation_id):
+    user = request.user
+
+    conversation = Conversation.objects.filter(
+        id=conversation_id,
+        participants=user
+    ).first()
+
+    if not conversation:
+        return Response({"detail": "Conversation not found or access denied."}, status=404)
+
+    unread_messages = Message.objects.filter(
+        conversation=conversation,
+        is_read=False,
+    ).exclude(sender=user)
+
+    channel_layer = get_channel_layer()
+
+    for message in unread_messages:
+        message.is_read = True
+        message.save()
+
+        data = MessageSerializer(message).data
+        async_to_sync(channel_layer.group_send)(
+            f"conversation_{conversation_id}",
+            {
+                "type": "read_message",
+                "data": data,
+            }
+        )
+
+    return Response({"detail": "Messages marked as read."}, status=200)

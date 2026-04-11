@@ -18,8 +18,12 @@ export function handleMessage(message, set) {
 
     } else if (type === "deleted") {
         set((prev) =>
-            prev.filter((b) => b.id !== data.id
-    )
+            prev.filter((b) => b.id !== data.id)
+        )
+
+    } else if (type === "read") {
+        set((prev) =>
+            prev.map((msg) => msg.id === data.id ? { ...msg, is_read: true } : msg)
         )
     }
 }

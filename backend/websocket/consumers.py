@@ -164,6 +164,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
             "type": "deleted",
             "data": event['data']
         }))
+        
+    async def read_message(self, event):
+        await self.send(text_data=json.dumps({
+            "type": "read",
+            "data": event['data']
+        }))
 
     @database_sync_to_async
     def is_participant(self):

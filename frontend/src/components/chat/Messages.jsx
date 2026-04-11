@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react'
-import { fetchMessages } from '../../api/chat'
+import { fetchMessages, markMessagesRead } from '../../api/chat'
 import MessageCard from './MessageCard'
 import AddMessage from './AddMessage'
 import { chatListener } from '../../listeners/chatListener'
@@ -24,6 +24,7 @@ export default function Messages({ conversation }) {
         setLoading(true)
         setMessages([])
         loadMessages()
+        markMessagesRead(conversation.id).catch(err => console.error("Mark read error:", err))
     }, [conversation.id])
 
     chatListener(conversation.id,setMessages)
@@ -55,7 +56,6 @@ export default function Messages({ conversation }) {
 
             <AddMessage
                 conversationId={conversation.id}
-                onMessageSent={(newMsg) => setMessages(prev => [...prev, newMsg])}
             />
         </div>
     )

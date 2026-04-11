@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react'
 import { createMessage } from '../../api/chat'
 
-export default function AddMessage({ conversationId, onMessageSent }) {
+export default function AddMessage({ conversationId}) {
     const [content, setContent] = useState('')
     const [sending, setSending] = useState(false)
     const [image, setImage] = useState(null)
@@ -35,8 +35,6 @@ export default function AddMessage({ conversationId, onMessageSent }) {
             } else {
                 newMsg = await createMessage(conversationId, { content })
             }
-
-            onMessageSent(newMsg)
             setContent('')
             clearImage()
         } catch (err) {
