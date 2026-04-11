@@ -3,6 +3,12 @@
 A full-stack service marketplace where users can register, browse businesses, view services, and manage bookings.  
 The project uses a React + Vite frontend and a Django REST backend with JWT authentication, optional Redis, and Celery for background work.
 
+## WIP
+
+- Notification
+- Update of ReadMe
+
+
 ## Features
 
 - User authentication (register, login, refresh token)
