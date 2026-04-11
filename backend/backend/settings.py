@@ -274,7 +274,7 @@ CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = "UTC"
 
 #schduler
-CELERY_BEAT_SCHEDULE = SCHEDULE
+# CELERY_BEAT_SCHEDULE = SCHEDULE
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 
 EMAIL_HOST = 'smtp.gmail.com'
