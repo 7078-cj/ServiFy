@@ -5,12 +5,19 @@ import {
   MarkerContent,
   MarkerPopup,
   MarkerTooltip,
+  MapRoute,
 } from "@/components/ui/map";
 import { MapEventListener } from "../../utils/mapUtils/mapEventListener";
 import { handleSearch } from "../../utils/mapUtils/map";
 import SearchInput from "../SearchInput";
+import { fetchOsrmRoutes } from "../../utils/mapUtils/fetchOsrmRoutes";
 
 const media_url = import.meta.env.VITE_MEDIA_URL;
+
+const ROUTE_COLORS = [
+  "#4285F4", "#EA4335", "#FBBC05", "#34A853",
+  "#FF6D00", "#7B1FA2", "#0288D1", "#00796B",
+];
 
 export default function MapComponent({
   location = null,
@@ -19,8 +26,12 @@ export default function MapComponent({
   editMode = false,
   userLocation = true,
   mapRef: externalMapRef = null,
+  // Each item: { id, from: {lat, lng}, to: {lat, lng}, label }
+  routeSources = [],
 }) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [routeCoordinates, setRouteCoordinates] = useState({})
+  // { [id]: [[lng, lat], ...] }
   const internalMapRef = useRef(null);
   const mapRef = externalMapRef ?? internalMapRef;
 
@@ -45,6 +56,27 @@ export default function MapComponent({
     }
   }, [userLocation]);
 
+  // Fetch OSRM route for each routeSource
+  useEffect(() => {
+    if (!routeSources.length) return;
+
+    routeSources.forEach((source) => {
+      if (!source.from || !source.to) return;
+
+      fetchOsrmRoutes({
+        coordinates: [source.from, source.to],
+        setRoutes: (routes) => {
+          if (routes.length === 0) return;
+          // OSRM returns [lng, lat] already
+          setRouteCoordinates((prev) => ({
+            ...prev,
+            [source.id]: routes[0].coordinates,
+          }));
+        },
+      });
+    });
+  }, [routeSources]);
+
   return (
     <>
       {location && (
@@ -66,7 +98,23 @@ export default function MapComponent({
       >
         {location && <MapEventListener setLocation={setLocation} editMode={editMode} />}
 
-        {/* Business markers */}
+        {/* Routes */}
+        {routeSources.map((source, index) => {
+          const coords = routeCoordinates[source.id];
+          if (!coords || coords.length < 2) return null;
+          return (
+            <MapRoute
+              key={`route-${source.id}`}
+              id={`route-${source.id}`}
+              coordinates={coords}
+              color={ROUTE_COLORS[index % ROUTE_COLORS.length]}
+              width={4}
+              opacity={0.75}
+            />
+          );
+        })}
+
+        {/* Business / booking markers */}
         {Markers.map((marker) =>
           marker.latitude != null && marker.longitude != null ? (
             <MapMarker
@@ -110,7 +158,7 @@ export default function MapComponent({
                   <div className="space-y-0.5">
                     <p className="font-medium text-foreground">{marker.name}</p>
                     <p className="text-xs text-muted-foreground">
-                      {marker.latitude.toFixed(4)}, {marker.longitude.toFixed(4)}
+                      {Number(marker.latitude).toFixed(4)}, {Number(marker.longitude).toFixed(4)}
                     </p>
                   </div>
                 </div>

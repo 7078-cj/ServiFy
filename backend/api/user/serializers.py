@@ -59,6 +59,9 @@ class UserProfileSerializer(serializers.ModelSerializer):
 class BookingSerializer(serializers.ModelSerializer):
     user = UserProfileSerializer(read_only=True)
     business_name = serializers.CharField(source='service.business.name', read_only=True)
+    business_logo = serializers.CharField(source='service.business.logo', read_only=True)
+    business_latitude = serializers.DecimalField(source='service.business.latitude', max_digits=9, decimal_places=6, read_only=True)
+    business_longitude = serializers.DecimalField(source='service.business.longitude', max_digits=9, decimal_places=6, read_only=True)
     service_name = serializers.CharField(source='service.name', read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
 
@@ -69,6 +72,9 @@ class BookingSerializer(serializers.ModelSerializer):
             'user',
             'service_name',
             'business_name',
+            'business_logo',
+            'business_latitude',
+            'business_longitude',
             'latitude',
             'longitude',
             'address',
@@ -77,4 +83,4 @@ class BookingSerializer(serializers.ModelSerializer):
             'status_display',
             'created_at',
         ]
-        read_only_fields = ['id', 'user', 'status', 'created_at','service', 'service_name', 'status_display']
+        read_only_fields = ['id', 'user', 'status', 'created_at', 'service', 'service_name', 'status_display']

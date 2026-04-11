@@ -191,18 +191,67 @@ export default function BusinessBookingsDashboard() {
 
     const mapMarkers = useMemo(() => {
         const markers = [];
+        const seenBusinessKeys = new Set();
+
         for (const booking of markerSourceBookings) {
+            // Customer / booking marker
             const coords = getBookingCoordinates(booking);
-            if (!coords) continue;
-            markers.push({
-                id: booking.id,
-                name: `${getBusinessLabel(booking)} - ${getServiceLabel(booking)} (${getCustomerName(booking)})`,
-                latitude: coords.latitude,
-                longitude: coords.longitude,
-                logo: booking?.business?.logo || null,
-            });
+            if (coords) {
+                markers.push({
+                    id: `booking-${booking.id}`,
+                    name: `${getBusinessLabel(booking)} - ${getServiceLabel(booking)} (${getCustomerName(booking)})`,
+                    latitude: coords.latitude,
+                    longitude: coords.longitude,
+                    logo: null,
+                    isBusiness: false,
+                });
+            }
+
+            // Business marker — one per unique business
+            const businessKey = getBusinessKey(booking);
+            if (!seenBusinessKeys.has(businessKey)) {
+                const businessLat = parseFloat(booking?.business_latitude);
+                const businessLng = parseFloat(booking?.business_longitude);
+                if (!Number.isNaN(businessLat) && !Number.isNaN(businessLng)) {
+                    seenBusinessKeys.add(businessKey);
+                    markers.push({
+                        id: `business-${businessKey}`,
+                        name: getBusinessLabel(booking),
+                        latitude: businessLat,
+                        longitude: businessLng,
+                        logo: booking?.business_logo || null,
+                        isBusiness: true,
+                    });
+                }
+            }
         }
+
         return markers;
+    }, [markerSourceBookings]);
+
+    const routeSources = useMemo(() => {
+        return markerSourceBookings
+            .map((booking) => {
+                const to = getBookingCoordinates(booking);
+                if (!to) return null;
+
+                const businessLat = parseFloat(booking?.business_latitude);
+                const businessLng = parseFloat(booking?.business_longitude);
+                const hasBusinessCoords =
+                    !Number.isNaN(businessLat) && !Number.isNaN(businessLng);
+
+                if (!hasBusinessCoords) return null;
+
+                if (businessLat === to.latitude && businessLng === to.longitude) return null;
+
+                return {
+                    id: booking.id,
+                    from: { lat: businessLat, lng: businessLng },
+                    to:   { lat: to.latitude,  lng: to.longitude },
+                    label: `${getBusinessLabel(booking)} → ${getCustomerName(booking)}`,
+                };
+            })
+            .filter(Boolean);
     }, [markerSourceBookings]);
 
     const setUpdatingLoading = (isLoading, bookingId) => {
@@ -221,7 +270,6 @@ export default function BusinessBookingsDashboard() {
     const handleFlyTo = (booking) => {
         const coords = getBookingCoordinates(booking);
         if (!coords) return;
-        // Scroll map into view then fly to the booking location
         document.getElementById("bookings-map")?.scrollIntoView({ behavior: "smooth", block: "center" });
         mapRef.current?.flyTo({
             center: [coords.longitude, coords.latitude],
@@ -244,6 +292,23 @@ export default function BusinessBookingsDashboard() {
                 {/* Map Section */}
                 <div id="bookings-map" className="mb-6 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-6">
                     <h2 className="text-base font-semibold text-gray-900">Map</h2>
+
+                    {/* Legend */}
+                    <div className="mt-2 flex items-center gap-4 text-xs text-gray-500">
+                        <span className="flex items-center gap-1.5">
+                            <span className="inline-block w-3 h-3 rounded-full bg-blue-500" />
+                            Business
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                            <span className="inline-block w-3 h-3 rounded-full bg-rose-500" />
+                            Customer location
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                            <span className="inline-block w-6 h-1 rounded bg-blue-400" />
+                            Route
+                        </span>
+                    </div>
+
                     <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-4">
                         <select
                             className="rounded-lg border border-gray-300 px-3 py-2 text-sm"
@@ -289,7 +354,8 @@ export default function BusinessBookingsDashboard() {
                     </div>
 
                     <p className="mt-3 text-xs text-gray-500">
-                        Showing {mapMarkers.length} booking marker{mapMarkers.length === 1 ? "" : "s"} on map.
+                        Showing {mapMarkers.length} marker{mapMarkers.length === 1 ? "" : "s"} on map
+                        {routeSources.length > 0 && ` · ${routeSources.length} route${routeSources.length === 1 ? "" : "s"}`}.
                     </p>
 
                     <div className="mt-4 h-[420px] overflow-hidden rounded-xl border">
@@ -297,6 +363,7 @@ export default function BusinessBookingsDashboard() {
                             Markers={mapMarkers}
                             userLocation={false}
                             mapRef={mapRef}
+                            routeSources={routeSources}
                         />
                     </div>
                 </div>
@@ -371,7 +438,7 @@ export default function BusinessBookingsDashboard() {
                                                                         <tr key={booking.id}>
                                                                             <td className="px-4 py-4 text-sm text-gray-700">{customerName}</td>
                                                                             <td className="px-4 py-4 text-sm text-gray-700">{formatDate(bookingDate)}</td>
-                                                                            <td className="px-4 py-4 text-sm text-gray-700">{address}</td>
+                                                                            <td className="px-4 py-4 text-sm text-gray-700 max-w-[200px] truncate" title={address}>{address}</td>
                                                                             <td className="px-4 py-4">
                                                                                 <span className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${getStatusClass(currentStatus)}`}>
                                                                                     {currentStatus}
