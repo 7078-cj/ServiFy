@@ -79,7 +79,7 @@ export default function MapComponent({
 
   return (
     <>
-      {location && (
+      {location && editMode &&  (
         <SearchInput
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}

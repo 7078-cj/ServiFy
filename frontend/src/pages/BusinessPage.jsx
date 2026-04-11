@@ -10,6 +10,7 @@ import ReviewsList from "../components/business/ReviewsList"
 import BusinessPageSkeleton from "../components/business/BusinessPageSkeleton"
 import AddUpdateBusinessModal from "../components/business/AddUpdateBusinessModal"
 import AddUpdateServiceModal from "../components/business/AddUpdateServiceModal"
+import MapComponent from "../components/map/MapComponent"
 import { Button } from "../components/ui/button"
 import { Plus } from "lucide-react"
 import { createService } from "../api/services"
@@ -80,11 +81,28 @@ export default function BusinessPage() {
         average_price,
         min_price,
         max_price,
+        latitude,
+        longitude,
+        logo,
+        name,
     } = business
 
     const hasAbout = !!description
     const hasPricing = min_price || max_price || average_price
     const isOwner = business.owner.id === user?.id
+
+    const businessLat = parseFloat(latitude)
+    const businessLng = parseFloat(longitude)
+    const hasLocation = !Number.isNaN(businessLat) && !Number.isNaN(businessLng)
+
+    const mapMarker = hasLocation ? [{
+        id: `business-${id}`,
+        name: name,
+        latitude: businessLat,
+        longitude: businessLng,
+        logo: logo || null,
+        isBusiness: true,
+    }] : []
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -101,9 +119,7 @@ export default function BusinessPage() {
 
                         {(hasAbout || hasPricing) && (
                             <div className="space-y-4">
-                                {hasAbout && (
-                                    <BusinessAbout description={description} />
-                                )}
+                                {hasAbout && <BusinessAbout description={description} />}
                                 {hasPricing && (
                                     <PricingCard
                                         min_price={min_price}
@@ -114,7 +130,28 @@ export default function BusinessPage() {
                             </div>
                         )}
 
-                        {/* Larger portfolio thumbnails */}
+                        {/* Business location map */}
+                        {hasLocation && (
+                            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                                <div className="px-4 pt-4 pb-2">
+                                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                                        Location
+                                    </p>
+                                </div>
+                                <div className="h-52">
+                                    <MapComponent
+                                        Markers={mapMarker}
+                                        userLocation={false}
+                                        location={{
+                                            lat: businessLat,
+                                            lng: businessLng,
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Portfolio */}
                         <div className="[&_img]:!w-32 [&_img]:!h-32 [&_img]:!object-cover [&_.grid]:!gap-3">
                             <PortfolioGallery
                                 portfolio={portfolio}
@@ -128,7 +165,6 @@ export default function BusinessPage() {
                     {/* RIGHT — services & reviews */}
                     <div className="flex-1 min-w-0 space-y-5">
 
-                        {/* Services header */}
                         <div className="flex items-center justify-between">
                             <h2 className="text-lg font-semibold text-gray-900">Services</h2>
                             {isOwner && (
@@ -165,7 +201,6 @@ export default function BusinessPage() {
                             </div>
                         )}
 
-                        {/* Reviews */}
                         <ReviewsList
                             reviews={reviews}
                             onAddReview={handleAddReview}
