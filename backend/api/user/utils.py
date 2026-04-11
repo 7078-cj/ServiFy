@@ -1,7 +1,7 @@
 import random
+import threading
 from django.conf import settings
 from django.core.mail import send_mail
-
 
 
 def generate_pin():
@@ -14,3 +14,8 @@ def send_reset_email(user, code):
         settings.DEFAULT_FROM_EMAIL,
         [user.email],
     )
+
+def send_reset_email_async(user, code):
+    thread = threading.Thread(target=send_reset_email, args=(user, code))
+    thread.daemon = True
+    thread.start()

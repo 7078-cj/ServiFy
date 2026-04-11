@@ -10,7 +10,7 @@ from rest_framework.throttling import AnonRateThrottle
 from django.contrib.auth.models import User
 from ..rate_limit.TestThrottle import TestThrottle
 from rest_framework import status
-from .utils import generate_pin, send_reset_email
+from .utils import generate_pin, send_reset_email_async
 from django.core.cache import cache
 from rest_framework.generics import ListAPIView, ListCreateAPIView, RetrieveUpdateDestroyAPIView, RetrieveUpdateAPIView
 from .models import Location, Booking
@@ -22,6 +22,7 @@ from ..business.utils import get_service
 from rest_framework import viewsets, permissions
 from rest_framework.exceptions import PermissionDenied
 
+from backend.api.user.utils import send_reset_email_async
 
 class IsBookingOwner(permissions.BasePermission):
     """Allow read to booking user, write only to the business owner."""
@@ -90,7 +91,7 @@ def request_password_reset(request):
         timeout=RESET_CODE_TIMEOUT
     )
 
-    send_reset_email(user, code)
+    send_reset_email_async(user, code)
 
     return Response({"message": "Reset code sent"})
 
@@ -173,7 +174,7 @@ def resend_reset_code(request):
         timeout=RESET_CODE_TIMEOUT
     )
 
-    send_reset_email(user, code)
+    send_reset_email_async(user, code)
 
     return Response({"message": "New reset code sent"})
 
