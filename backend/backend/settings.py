@@ -15,7 +15,7 @@ from datetime import timedelta
 import environ
 import os
 from celery.schedules import crontab # pyright: ignore[reportMissingImports]
-from .scheduler import SCHEDULE
+# from .scheduler import SCHEDULE
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
