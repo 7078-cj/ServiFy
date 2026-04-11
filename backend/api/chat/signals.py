@@ -1,4 +1,4 @@
-from django.db.models.signals import post_delete, pre_save, post_save
+from django.db.models.signals import post_delete, pre_save, post_save, pre_delete
 from django.dispatch import receiver
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
@@ -22,6 +22,11 @@ def conversation_created(sender, instance, created, **kwargs):
                 "data": data,
             }
         )
+        
+@receiver(pre_delete, sender=Conversation)
+def clean_message_images(sender, instance, **kwargs):
+    for message in instance.messages.all():
+        _remove_file(message.image)
 
 @receiver(post_delete, sender=Conversation)
 def conversation_deleted(sender, instance, **kwargs):

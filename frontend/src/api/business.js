@@ -1,6 +1,6 @@
 import { setAllBusinesses } from "../features/business/allBusinessSlice"
 import { setBusinesses } from "../features/business/businessSlice"
-import { getRequest, postRequest, putRequest } from "../utils/reqests/requests"
+import { deleteRequest, getRequest, postRequest, putRequest } from "../utils/reqests/requests"
 import { requireToken } from "./access"
 
 
@@ -145,6 +145,31 @@ export function updateBusiness(id, formData, setBusinessModalOpen = null, setBus
             access,
             true
         )
+
+    } catch (err) {
+        return Promise.reject(err)
+    }
+}
+
+export function deleteBusiness(id, dispatch = null, setBusinessModalOpen = null) {
+    try {
+        const access = requireToken()
+
+        if (dispatch && setBusinessModalOpen) {
+            return deleteRequest(`businesses/${id}/`, access)
+                .then(res => {
+                    getUserBusinesses(dispatch)
+                    getAllBusinesses(dispatch)
+                    setBusinessModalOpen(false)
+                    return res
+                })
+                .catch(err => {
+                    console.error("Failed to delete business:", err)
+                    throw err
+                })
+        }
+
+        return deleteRequest(`businesses/${id}/`, access)
 
     } catch (err) {
         return Promise.reject(err)

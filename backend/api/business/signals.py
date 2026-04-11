@@ -1,6 +1,6 @@
-from django.db.models.signals import post_delete, pre_save, post_save
+from django.db.models.signals import post_delete, pre_save, post_save, pre_delete
 from django.dispatch import receiver
-from api.models import Portfolio, Service, Review
+from api.models import Portfolio, Service, Review, Business
 from .utils import _remove_file
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
@@ -8,6 +8,18 @@ from .serializers import ReviewSerializer
 
 channel_layer = get_channel_layer()
 
+@receiver(pre_delete, sender=Business)
+def delete_business_related_files(sender, instance, **kwargs):
+    for portfolio in instance.portfolio.all():
+        _remove_file(portfolio.photo)
+
+    for service in instance.services.all():
+        _remove_file(service.thumbnail)
+
+@receiver(post_delete, sender=Business)
+def delete_portfolio_photo(sender, instance, **kwargs):
+    print("🔥 delete logo fired")
+    _remove_file(instance.logo)
 
 @receiver(post_delete, sender=Portfolio)
 def delete_portfolio_photo(sender, instance, **kwargs):
