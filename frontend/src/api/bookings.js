@@ -106,3 +106,21 @@ export async function deleteBooking(bookingId, setLoading, onSuccess) {
         setLoading(false)
     }
 }
+
+export async function cancelBooking(bookingId, setLoading, onSuccess) {
+    const access = requireToken()
+    try {
+        setLoading(true)
+        await patchRequest(
+            `user/bookings/${bookingId}/cancel/`,
+            {},
+            access,
+        )
+        onSuccess?.()
+    } catch (err) {
+        console.error(err)
+        alert("Failed to cancel booking")
+    } finally {
+        setLoading(false)
+    }
+}

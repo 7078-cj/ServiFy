@@ -1,37 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
-import { getBookings } from "../api/bookings";
+import { cancelBooking, getBookings } from "../api/bookings";
 import userBookingsListener from "../listeners/userBookingsListener";
 import { useSelector } from "react-redux";
+import { normalizeBookings, formatDate, getStatusClass  } from "./BusinessBookingsDashboard";
 
-const normalizeBookings = (payload) => {
-    if (Array.isArray(payload)) return payload;
-    if (Array.isArray(payload?.results)) return payload.results;
-    return [];
-};
-
-const formatDate = (value) => {
-    if (!value) return "Not set";
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return value;
-    return date.toLocaleString();
-};
-
-const getStatusClass = (status) => {
-    switch ((status || "").toLowerCase()) {
-        case "approved":
-            return "bg-blue-100 text-blue-700";
-        case "completed":
-            return "bg-green-100 text-green-700";
-        case "cancelled":
-            return "bg-red-100 text-red-700";
-        default:
-            return "bg-amber-100 text-amber-700";
-    }
-};
+// ... normalizeBookings, formatDate, getStatusClass unchanged
 
 export default function Bookings() {
     const [rawBookings, setRawBookings] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [cancellingId, setCancellingId] = useState(null)
     const { profile } = useSelector((state) => state.profile);
 
     useEffect(() => {
@@ -41,6 +19,14 @@ export default function Bookings() {
     const bookings = useMemo(() => normalizeBookings(rawBookings), [rawBookings]);
 
     userBookingsListener(profile?.id, setRawBookings);
+
+    const handleCancel = (bookingId) => {
+        cancelBooking(
+            bookingId,
+            (val) => setCancellingId(val ? bookingId : null),
+            () => getBookings(setRawBookings, setLoading)
+        )
+    }
 
     return (
         <div className="min-h-screen bg-gray-50 px-4 py-8 sm:px-6 lg:px-8">
@@ -64,6 +50,7 @@ export default function Bookings() {
                                 const businessName = booking?.business?.name || booking?.business_name || "Business";
                                 const bookingDate = booking?.date || booking?.booking_date || booking?.created_at;
                                 const status = booking?.status || "pending";
+                                const isPending = status.toLowerCase() === "pending"
 
                                 return (
                                     <div key={booking.id} className="p-6">
@@ -76,11 +63,21 @@ export default function Bookings() {
                                                 </p>
                                             </div>
 
-                                            <span
-                                                className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${getStatusClass(status)}`}
-                                            >
-                                                {status}
-                                            </span>
+                                            <div className="flex items-center gap-3">
+                                                <span className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${getStatusClass(status)}`}>
+                                                    {status}
+                                                </span>
+
+                                                {isPending && (
+                                                    <button
+                                                        onClick={() => handleCancel(booking.id)}
+                                                        disabled={cancellingId === booking.id}
+                                                        className="rounded-full px-3 py-1 text-xs font-semibold text-red-600 border border-red-200 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                                    >
+                                                        {cancellingId === booking.id ? "Cancelling..." : "Cancel"}
+                                                    </button>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 );

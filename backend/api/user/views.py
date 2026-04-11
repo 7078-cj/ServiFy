@@ -12,7 +12,7 @@ from ..rate_limit.TestThrottle import TestThrottle
 from rest_framework import status
 from .utils import generate_pin, send_reset_email
 from django.core.cache import cache
-from rest_framework.generics import ListAPIView, ListCreateAPIView, RetrieveUpdateDestroyAPIView
+from rest_framework.generics import ListAPIView, ListCreateAPIView, RetrieveUpdateDestroyAPIView, RetrieveUpdateAPIView
 from .models import Location, Booking
 from ..business.models import Service
 from .serializers import LocationSerializer
@@ -285,6 +285,28 @@ class BookingDetailView(RetrieveUpdateDestroyAPIView):
             raise PermissionDenied("Only the business owner can update the booking status")
 
         serializer.save(status=new_status, partial=True)
+        
+class BookingCancelView(RetrieveUpdateAPIView):
+    serializer_class = BookingSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return (
+            Booking.objects
+            .filter(user=self.request.user)        
+            .select_related('user', 'service', 'service__business')
+        )
+
+    def perform_update(self, serializer):
+        booking = self.get_object()
+
+        if booking.status != "pending":
+            raise PermissionDenied("Only pending bookings can be cancelled.")
+
+        if booking.user != self.request.user:
+            raise PermissionDenied("You can only cancel your own bookings.")
+
+        serializer.save(status="cancelled", partial=True)
         
         
 class AllBusinessBookingListView(ListAPIView):

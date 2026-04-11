@@ -36,11 +36,20 @@ def booking_updated(sender, instance, created, **kwargs):
 
     if created:
         owner_id = instance.service.business.owner.id
-
         async_to_sync(channel_layer.group_send)(
             f"user_business_bookings_{owner_id}",
             {
                 "type": "booking_create",
+                "data": data
+            }
+        )
+
+    elif instance.status == "cancelled":
+        owner_id = instance.service.business.owner.id
+        async_to_sync(channel_layer.group_send)(
+            f"user_business_bookings_{owner_id}",
+            {
+                "type": "booking_cancelled",
                 "data": data
             }
         )

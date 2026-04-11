@@ -15,7 +15,8 @@ from .views import (AllBusinessBookingListView, BusinessBookingListView, UserBoo
                     profile,
                     updateProfile,
                     BookingListCreateView,
-                    BookingDetailView)
+                    BookingDetailView,
+                    BookingCancelView)
 
 
 urlpatterns = [
@@ -59,6 +60,7 @@ urlpatterns = [
     "business/<int:business_id>/bookings/",
         BusinessBookingListView.as_view(),
         name="business-bookings"
-    )
+    ),
+    path("bookings/<int:pk>/cancel/", BookingCancelView.as_view(), name="booking-cancel"),
     
 ]

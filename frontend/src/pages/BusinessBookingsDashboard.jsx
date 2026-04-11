@@ -1,16 +1,16 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { getAllBusinessBookings, updateBooking } from "../api/bookings";
 import MapComponent from "../components/map/MapComponent";
 import businessBookingsListener from "../listeners/businessBookingsListener";
 import { useSelector } from "react-redux";
 
-const normalizeBookings = (payload) => {
+export const normalizeBookings = (payload) => {
     if (Array.isArray(payload)) return payload;
     if (Array.isArray(payload?.results)) return payload.results;
     return [];
 };
 
-const formatDate = (value) => {
+export const formatDate = (value) => {
     if (!value) return "Not set";
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return value;
@@ -19,16 +19,12 @@ const formatDate = (value) => {
 
 const STATUS_OPTIONS = ["pending", "approved", "completed", "cancelled"];
 
-const getStatusClass = (status) => {
+export const getStatusClass = (status) => {
     switch ((status || "").toLowerCase()) {
-        case "approved":
-            return "bg-blue-100 text-blue-700";
-        case "completed":
-            return "bg-green-100 text-green-700";
-        case "cancelled":
-            return "bg-red-100 text-red-700";
-        default:
-            return "bg-amber-100 text-amber-700";
+        case "approved":  return "bg-blue-100 text-blue-700";
+        case "completed": return "bg-green-100 text-green-700";
+        case "cancelled": return "bg-red-100 text-red-700";
+        default:          return "bg-amber-100 text-amber-700";
     }
 };
 
@@ -58,6 +54,9 @@ const getBookingTimestamp = (booking) => {
 };
 
 const getBookingStatus = (booking) => (booking?.status || "pending").toLowerCase();
+
+const getBookingAddress = (booking) =>
+    booking?.address || booking?.location?.address || "—";
 
 const getBookingCoordinates = (booking) => {
     const latRaw =
@@ -134,6 +133,7 @@ export default function BusinessBookingsDashboard() {
     const [selectedStatus, setSelectedStatus] = useState("all");
     const [markerScope, setMarkerScope] = useState("all");
     const { profile } = useSelector((state) => state.profile);
+    const mapRef = useRef(null);
 
     const fetchBookings = () => {
         getAllBusinessBookings(setRawBookings, setLoading);
@@ -150,7 +150,6 @@ export default function BusinessBookingsDashboard() {
         for (const booking of bookings) {
             unique.set(getBusinessKey(booking), getBusinessLabel(booking));
         }
-
         return Array.from(unique.entries())
             .map(([key, label]) => ({ key, label }))
             .sort((a, b) => a.label.localeCompare(b.label));
@@ -166,7 +165,6 @@ export default function BusinessBookingsDashboard() {
         for (const booking of source) {
             unique.set(getServiceKey(booking), getServiceLabel(booking));
         }
-
         return Array.from(unique.entries())
             .map(([key, label]) => ({ key, label }))
             .sort((a, b) => a.label.localeCompare(b.label));
@@ -180,15 +178,9 @@ export default function BusinessBookingsDashboard() {
 
     const filteredBookings = useMemo(() => {
         return bookings.filter((booking) => {
-            if (selectedBusiness !== "all" && getBusinessKey(booking) !== selectedBusiness) {
-                return false;
-            }
-            if (selectedService !== "all" && getServiceKey(booking) !== selectedService) {
-                return false;
-            }
-            if (selectedStatus !== "all" && getBookingStatus(booking) !== selectedStatus) {
-                return false;
-            }
+            if (selectedBusiness !== "all" && getBusinessKey(booking) !== selectedBusiness) return false;
+            if (selectedService !== "all" && getServiceKey(booking) !== selectedService) return false;
+            if (selectedStatus !== "all" && getBookingStatus(booking) !== selectedStatus) return false;
             return true;
         });
     }, [bookings, selectedBusiness, selectedService, selectedStatus]);
@@ -202,7 +194,6 @@ export default function BusinessBookingsDashboard() {
         for (const booking of markerSourceBookings) {
             const coords = getBookingCoordinates(booking);
             if (!coords) continue;
-
             markers.push({
                 id: booking.id,
                 name: `${getBusinessLabel(booking)} - ${getServiceLabel(booking)} (${getCustomerName(booking)})`,
@@ -215,11 +206,7 @@ export default function BusinessBookingsDashboard() {
     }, [markerSourceBookings]);
 
     const setUpdatingLoading = (isLoading, bookingId) => {
-        if (isLoading) {
-            setUpdatingId(bookingId);
-            return;
-        }
-        setUpdatingId(null);
+        setUpdatingId(isLoading ? bookingId : null);
     };
 
     const handleStatusUpdate = async (bookingId, status) => {
@@ -229,6 +216,17 @@ export default function BusinessBookingsDashboard() {
             (isLoading) => setUpdatingLoading(isLoading, bookingId),
             fetchBookings
         );
+    };
+
+    const handleFlyTo = (booking) => {
+        const coords = getBookingCoordinates(booking);
+        if (!coords) return;
+        // Scroll map into view then fly to the booking location
+        document.getElementById("bookings-map")?.scrollIntoView({ behavior: "smooth", block: "center" });
+        mapRef.current?.flyTo({
+            center: [coords.longitude, coords.latitude],
+            zoom: 17,
+        });
     };
 
     businessBookingsListener(profile?.id, setRawBookings);
@@ -243,8 +241,9 @@ export default function BusinessBookingsDashboard() {
                     </p>
                 </div>
 
-                <div className="mb-6 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-6">
-                    <h2 className="text-base font-semibold text-gray-900">Map Filters</h2>
+                {/* Map Section */}
+                <div id="bookings-map" className="mb-6 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-6">
+                    <h2 className="text-base font-semibold text-gray-900">Map</h2>
                     <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-4">
                         <select
                             className="rounded-lg border border-gray-300 px-3 py-2 text-sm"
@@ -253,9 +252,7 @@ export default function BusinessBookingsDashboard() {
                         >
                             <option value="all">All businesses</option>
                             {businessOptions.map((business) => (
-                                <option key={business.key} value={business.key}>
-                                    {business.label}
-                                </option>
+                                <option key={business.key} value={business.key}>{business.label}</option>
                             ))}
                         </select>
 
@@ -266,9 +263,7 @@ export default function BusinessBookingsDashboard() {
                         >
                             <option value="all">All services</option>
                             {serviceOptions.map((service) => (
-                                <option key={service.key} value={service.key}>
-                                    {service.label}
-                                </option>
+                                <option key={service.key} value={service.key}>{service.label}</option>
                             ))}
                         </select>
 
@@ -279,9 +274,7 @@ export default function BusinessBookingsDashboard() {
                         >
                             <option value="all">All statuses</option>
                             {STATUS_OPTIONS.map((status) => (
-                                <option key={status} value={status}>
-                                    {status}
-                                </option>
+                                <option key={status} value={status}>{status}</option>
                             ))}
                         </select>
 
@@ -300,10 +293,15 @@ export default function BusinessBookingsDashboard() {
                     </p>
 
                     <div className="mt-4 h-[420px] overflow-hidden rounded-xl border">
-                        <MapComponent Markers={mapMarkers} userLocation={false} />
+                        <MapComponent
+                            Markers={mapMarkers}
+                            userLocation={false}
+                            mapRef={mapRef}
+                        />
                     </div>
                 </div>
 
+                {/* Bookings Table */}
                 <div className="rounded-2xl border border-gray-100 bg-white shadow-sm">
                     {loading ? (
                         <p className="p-6 text-sm text-gray-500">Loading bookings...</p>
@@ -313,8 +311,7 @@ export default function BusinessBookingsDashboard() {
                         <div className="p-4 sm:p-6 space-y-4">
                             {grouped.map((businessGroup) => {
                                 const businessCount = businessGroup.services.reduce(
-                                    (sum, service) => sum + service.bookings.length,
-                                    0
+                                    (sum, service) => sum + service.bookings.length, 0
                                 );
 
                                 return (
@@ -324,9 +321,7 @@ export default function BusinessBookingsDashboard() {
                                     >
                                         <summary className="cursor-pointer select-none px-4 py-4 sm:px-6 bg-gray-50 flex items-center justify-between gap-3">
                                             <div>
-                                                <div className="text-base font-semibold text-gray-900">
-                                                    {businessGroup.label}
-                                                </div>
+                                                <div className="text-base font-semibold text-gray-900">{businessGroup.label}</div>
                                                 <div className="text-xs text-gray-500 mt-0.5">
                                                     {businessCount} booking{businessCount === 1 ? "" : "s"}
                                                 </div>
@@ -344,9 +339,7 @@ export default function BusinessBookingsDashboard() {
                                                     open={businessGroup.services.length === 1}
                                                 >
                                                     <summary className="cursor-pointer select-none px-4 py-3 sm:px-5 bg-white flex items-center justify-between gap-3">
-                                                        <div className="text-sm font-semibold text-gray-900">
-                                                            {serviceGroup.label}
-                                                        </div>
+                                                        <div className="text-sm font-semibold text-gray-900">{serviceGroup.label}</div>
                                                         <div className="text-xs text-gray-500">
                                                             {serviceGroup.bookings.length} booking{serviceGroup.bookings.length === 1 ? "" : "s"}
                                                         </div>
@@ -356,18 +349,12 @@ export default function BusinessBookingsDashboard() {
                                                         <table className="min-w-full divide-y divide-gray-100">
                                                             <thead className="bg-gray-50">
                                                                 <tr>
-                                                                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                                                        Customer
-                                                                    </th>
-                                                                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                                                        Date
-                                                                    </th>
-                                                                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                                                        Status
-                                                                    </th>
-                                                                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                                                        Update
-                                                                    </th>
+                                                                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Customer</th>
+                                                                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Date</th>
+                                                                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Address</th>
+                                                                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Status</th>
+                                                                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Update</th>
+                                                                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Map</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody className="divide-y divide-gray-100 bg-white">
@@ -375,32 +362,42 @@ export default function BusinessBookingsDashboard() {
                                                                     const currentStatus = getBookingStatus(booking);
                                                                     const customerName = getCustomerName(booking);
                                                                     const bookingDate = booking?.date || booking?.booking_date || booking?.created_at;
+                                                                    const address = getBookingAddress(booking);
                                                                     const isUpdating = updatingId === booking.id;
+                                                                    const isCancelled = currentStatus === "cancelled";
+                                                                    const hasCoords = !!getBookingCoordinates(booking);
 
                                                                     return (
                                                                         <tr key={booking.id}>
                                                                             <td className="px-4 py-4 text-sm text-gray-700">{customerName}</td>
                                                                             <td className="px-4 py-4 text-sm text-gray-700">{formatDate(bookingDate)}</td>
+                                                                            <td className="px-4 py-4 text-sm text-gray-700">{address}</td>
                                                                             <td className="px-4 py-4">
-                                                                                <span
-                                                                                    className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${getStatusClass(currentStatus)}`}
-                                                                                >
+                                                                                <span className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${getStatusClass(currentStatus)}`}>
                                                                                     {currentStatus}
                                                                                 </span>
                                                                             </td>
                                                                             <td className="px-4 py-4">
                                                                                 <select
-                                                                                    className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none ring-blue-100 focus:ring"
+                                                                                    className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none ring-blue-100 focus:ring disabled:opacity-50 disabled:cursor-not-allowed"
                                                                                     value={currentStatus}
-                                                                                    disabled={isUpdating}
+                                                                                    disabled={isUpdating || isCancelled}
                                                                                     onChange={(e) => handleStatusUpdate(booking.id, e.target.value)}
                                                                                 >
                                                                                     {STATUS_OPTIONS.map((status) => (
-                                                                                        <option key={status} value={status}>
-                                                                                            {status}
-                                                                                        </option>
+                                                                                        <option key={status} value={status}>{status}</option>
                                                                                     ))}
                                                                                 </select>
+                                                                            </td>
+                                                                            <td className="px-4 py-4">
+                                                                                <button
+                                                                                    onClick={() => handleFlyTo(booking)}
+                                                                                    disabled={!hasCoords}
+                                                                                    title={hasCoords ? "Fly to location" : "No coordinates available"}
+                                                                                    className="rounded-lg px-3 py-2 text-xs font-semibold text-blue-600 border border-blue-200 hover:bg-blue-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                                                                >
+                                                                                    📍 View
+                                                                                </button>
                                                                             </td>
                                                                         </tr>
                                                                     );

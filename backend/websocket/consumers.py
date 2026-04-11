@@ -46,6 +46,12 @@ class UserBusinessBookingsConsumer(AsyncWebsocketConsumer):
             "type": "created",
             "data": event["data"]
         }))
+    async def booking_cancelled(self, event):
+        await self.send(text_data=json.dumps({
+            "type": "updated",
+            "data": event["data"]
+        }))
+
 
 
 class UserBookingsConsumer(AsyncWebsocketConsumer):
