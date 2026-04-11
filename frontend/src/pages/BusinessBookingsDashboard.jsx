@@ -59,14 +59,10 @@ const getBookingAddress = (booking) =>
     booking?.address || booking?.location?.address || "—";
 
 const getBookingCoordinates = (booking) => {
-    const latRaw =
-        booking?.latitude ?? booking?.lat ?? booking?.location?.latitude ?? booking?.location?.lat;
-    const lngRaw =
-        booking?.longitude ?? booking?.lng ?? booking?.location?.longitude ?? booking?.location?.lng;
-
+    const latRaw = booking?.latitude ?? booking?.lat ?? booking?.location?.latitude ?? booking?.location?.lat;
+    const lngRaw = booking?.longitude ?? booking?.lng ?? booking?.location?.longitude ?? booking?.location?.lng;
     const latitude = parseFloat(latRaw);
     const longitude = parseFloat(lngRaw);
-
     if (Number.isNaN(latitude) || Number.isNaN(longitude)) return null;
     return { latitude, longitude };
 };
@@ -77,124 +73,33 @@ const getCustomerName = (booking) =>
     booking?.customer_name ||
     "Customer";
 
-const groupBookings = (bookings) => {
-    const byBusiness = new Map();
-
-    for (const booking of bookings) {
-        const businessKey = getBusinessKey(booking);
-        if (!byBusiness.has(businessKey)) {
-            byBusiness.set(businessKey, {
-                label: getBusinessLabel(booking),
-                services: new Map(),
-            });
-        }
-
-        const businessGroup = byBusiness.get(businessKey);
-        const serviceKey = getServiceKey(booking);
-        if (!businessGroup.services.has(serviceKey)) {
-            businessGroup.services.set(serviceKey, {
-                label: getServiceLabel(booking),
-                bookings: [],
-            });
-        }
-
-        businessGroup.services.get(serviceKey).bookings.push(booking);
-    }
-
-    const businessEntries = Array.from(byBusiness.entries()).sort((a, b) =>
-        a[1].label.localeCompare(b[1].label)
-    );
-
-    return businessEntries.map(([businessKey, businessGroup]) => {
-        const servicesEntries = Array.from(businessGroup.services.entries()).sort((a, b) =>
-            a[1].label.localeCompare(b[1].label)
-        );
-
-        return {
-            key: businessKey,
-            label: businessGroup.label,
-            services: servicesEntries.map(([serviceKey, serviceGroup]) => ({
-                key: serviceKey,
-                label: serviceGroup.label,
-                bookings: serviceGroup.bookings.sort(
-                    (a, b) => getBookingTimestamp(b) - getBookingTimestamp(a)
-                ),
-            })),
-        };
-    });
-};
+const media_url = import.meta.env.VITE_MEDIA_URL;
 
 export default function BusinessBookingsDashboard() {
     const [rawBookings, setRawBookings] = useState([]);
     const [loading, setLoading] = useState(false);
     const [updatingId, setUpdatingId] = useState(null);
-    const [selectedBusiness, setSelectedBusiness] = useState("all");
-    const [selectedService, setSelectedService] = useState("all");
     const [selectedStatus, setSelectedStatus] = useState("all");
-    const [markerScope, setMarkerScope] = useState("all");
+    const [focusedBookingId, setFocusedBookingId] = useState(null);
     const { profile } = useSelector((state) => state.profile);
     const mapRef = useRef(null);
 
-    const fetchBookings = () => {
-        getAllBusinessBookings(setRawBookings, setLoading);
-    };
+    const fetchBookings = () => getAllBusinessBookings(setRawBookings, setLoading);
 
-    useEffect(() => {
-        fetchBookings();
-    }, []);
+    useEffect(() => { fetchBookings(); }, []);
 
     const bookings = useMemo(() => normalizeBookings(rawBookings), [rawBookings]);
 
-    const businessOptions = useMemo(() => {
-        const unique = new Map();
-        for (const booking of bookings) {
-            unique.set(getBusinessKey(booking), getBusinessLabel(booking));
-        }
-        return Array.from(unique.entries())
-            .map(([key, label]) => ({ key, label }))
-            .sort((a, b) => a.label.localeCompare(b.label));
-    }, [bookings]);
-
-    const serviceOptions = useMemo(() => {
-        const source =
-            selectedBusiness === "all"
-                ? bookings
-                : bookings.filter((booking) => getBusinessKey(booking) === selectedBusiness);
-
-        const unique = new Map();
-        for (const booking of source) {
-            unique.set(getServiceKey(booking), getServiceLabel(booking));
-        }
-        return Array.from(unique.entries())
-            .map(([key, label]) => ({ key, label }))
-            .sort((a, b) => a.label.localeCompare(b.label));
-    }, [bookings, selectedBusiness]);
-
-    useEffect(() => {
-        if (selectedService === "all") return;
-        const stillExists = serviceOptions.some((s) => s.key === selectedService);
-        if (!stillExists) setSelectedService("all");
-    }, [serviceOptions, selectedService]);
-
     const filteredBookings = useMemo(() => {
-        return bookings.filter((booking) => {
-            if (selectedBusiness !== "all" && getBusinessKey(booking) !== selectedBusiness) return false;
-            if (selectedService !== "all" && getServiceKey(booking) !== selectedService) return false;
-            if (selectedStatus !== "all" && getBookingStatus(booking) !== selectedStatus) return false;
-            return true;
-        });
-    }, [bookings, selectedBusiness, selectedService, selectedStatus]);
-
-    const grouped = useMemo(() => groupBookings(filteredBookings), [filteredBookings]);
-
-    const markerSourceBookings = markerScope === "all" ? bookings : filteredBookings;
+        if (selectedStatus === "all") return bookings;
+        return bookings.filter((b) => getBookingStatus(b) === selectedStatus);
+    }, [bookings, selectedStatus]);
 
     const mapMarkers = useMemo(() => {
         const markers = [];
         const seenBusinessKeys = new Set();
 
-        for (const booking of markerSourceBookings) {
-            // Customer / booking marker
+        for (const booking of filteredBookings) {
             const coords = getBookingCoordinates(booking);
             if (coords) {
                 markers.push({
@@ -202,12 +107,11 @@ export default function BusinessBookingsDashboard() {
                     name: `${getBusinessLabel(booking)} - ${getServiceLabel(booking)} (${getCustomerName(booking)})`,
                     latitude: coords.latitude,
                     longitude: coords.longitude,
-                    logo: null,
+                    logo: booking.user.profile.profile_image || null,
                     isBusiness: false,
                 });
             }
 
-            // Business marker — one per unique business
             const businessKey = getBusinessKey(booking);
             if (!seenBusinessKeys.has(businessKey)) {
                 const businessLat = parseFloat(booking?.business_latitude);
@@ -225,44 +129,31 @@ export default function BusinessBookingsDashboard() {
                 }
             }
         }
-
         return markers;
-    }, [markerSourceBookings]);
+    }, [filteredBookings]);
 
     const routeSources = useMemo(() => {
-        return markerSourceBookings
-            .map((booking) => {
-                const to = getBookingCoordinates(booking);
-                if (!to) return null;
-
-                const businessLat = parseFloat(booking?.business_latitude);
-                const businessLng = parseFloat(booking?.business_longitude);
-                const hasBusinessCoords =
-                    !Number.isNaN(businessLat) && !Number.isNaN(businessLng);
-
-                if (!hasBusinessCoords) return null;
-
-                if (businessLat === to.latitude && businessLng === to.longitude) return null;
-
-                return {
-                    id: booking.id,
-                    from: { lat: businessLat, lng: businessLng },
-                    to:   { lat: to.latitude,  lng: to.longitude },
-                    label: `${getBusinessLabel(booking)} → ${getCustomerName(booking)}`,
-                };
-            })
-            .filter(Boolean);
-    }, [markerSourceBookings]);
-
-    const setUpdatingLoading = (isLoading, bookingId) => {
-        setUpdatingId(isLoading ? bookingId : null);
-    };
+        return filteredBookings.map((booking) => {
+            const to = getBookingCoordinates(booking);
+            if (!to) return null;
+            const businessLat = parseFloat(booking?.business_latitude);
+            const businessLng = parseFloat(booking?.business_longitude);
+            if (Number.isNaN(businessLat) || Number.isNaN(businessLng)) return null;
+            if (businessLat === to.latitude && businessLng === to.longitude) return null;
+            return {
+                id: booking.id,
+                from: { lat: businessLat, lng: businessLng },
+                to: { lat: to.latitude, lng: to.longitude },
+                label: `${getBusinessLabel(booking)} → ${getCustomerName(booking)}`,
+            };
+        }).filter(Boolean);
+    }, [filteredBookings]);
 
     const handleStatusUpdate = async (bookingId, status) => {
         await updateBooking(
             bookingId,
             { status },
-            (isLoading) => setUpdatingLoading(isLoading, bookingId),
+            (isLoading) => setUpdatingId(isLoading ? bookingId : null),
             fetchBookings
         );
     };
@@ -270,7 +161,7 @@ export default function BusinessBookingsDashboard() {
     const handleFlyTo = (booking) => {
         const coords = getBookingCoordinates(booking);
         if (!coords) return;
-        document.getElementById("bookings-map")?.scrollIntoView({ behavior: "smooth", block: "center" });
+        setFocusedBookingId(booking.id);
         mapRef.current?.flyTo({
             center: [coords.longitude, coords.latitude],
             zoom: 17,
@@ -280,207 +171,172 @@ export default function BusinessBookingsDashboard() {
     businessBookingsListener(profile?.id, setRawBookings);
 
     return (
-        <div className="min-h-screen bg-gray-50 px-4 py-8 sm:px-6 lg:px-8">
-            <div className="mx-auto max-w-6xl">
-                <div className="mb-6">
-                    <h1 className="text-2xl font-semibold text-gray-900">Business Bookings Dashboard</h1>
-                    <p className="mt-1 text-sm text-gray-600">
-                        View all bookings for your businesses and update their status.
+        <div className="flex h-screen bg-gray-50 overflow-hidden">
+
+            {/* LEFT — scrollable booking list */}
+            <div className="w-[55%] flex flex-col h-full overflow-hidden border-r border-gray-200 bg-white">
+
+                {/* Header */}
+                <div className="px-6 py-4 border-b border-gray-100 flex-shrink-0">
+                    <h1 className="text-lg font-semibold text-gray-900">Business Bookings</h1>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                        {filteredBookings.length} booking{filteredBookings.length === 1 ? "" : "s"}
+                        {selectedStatus !== "all" && ` · ${selectedStatus}`}
                     </p>
                 </div>
 
-                {/* Map Section */}
-                <div id="bookings-map" className="mb-6 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-6">
-                    <h2 className="text-base font-semibold text-gray-900">Map</h2>
-
-                    {/* Legend */}
-                    <div className="mt-2 flex items-center gap-4 text-xs text-gray-500">
-                        <span className="flex items-center gap-1.5">
-                            <span className="inline-block w-3 h-3 rounded-full bg-blue-500" />
-                            Business
-                        </span>
-                        <span className="flex items-center gap-1.5">
-                            <span className="inline-block w-3 h-3 rounded-full bg-rose-500" />
-                            Customer location
-                        </span>
-                        <span className="flex items-center gap-1.5">
-                            <span className="inline-block w-6 h-1 rounded bg-blue-400" />
-                            Route
-                        </span>
-                    </div>
-
-                    <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-4">
-                        <select
-                            className="rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                            value={selectedBusiness}
-                            onChange={(e) => setSelectedBusiness(e.target.value)}
+                {/* Filters */}
+                <div className="px-6 py-3 border-b border-gray-100 flex-shrink-0 flex items-center gap-2 flex-wrap">
+                    <span className="text-xs text-gray-500 font-medium mr-1">Status:</span>
+                    {["all", ...STATUS_OPTIONS].map((status) => (
+                        <button
+                            key={status}
+                            onClick={() => setSelectedStatus(status)}
+                            className={`rounded-full px-3 py-1 text-xs font-semibold capitalize transition-colors ${
+                                selectedStatus === status
+                                    ? "bg-gray-900 text-white"
+                                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                            }`}
                         >
-                            <option value="all">All businesses</option>
-                            {businessOptions.map((business) => (
-                                <option key={business.key} value={business.key}>{business.label}</option>
-                            ))}
-                        </select>
-
-                        <select
-                            className="rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                            value={selectedService}
-                            onChange={(e) => setSelectedService(e.target.value)}
-                        >
-                            <option value="all">All services</option>
-                            {serviceOptions.map((service) => (
-                                <option key={service.key} value={service.key}>{service.label}</option>
-                            ))}
-                        </select>
-
-                        <select
-                            className="rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                            value={selectedStatus}
-                            onChange={(e) => setSelectedStatus(e.target.value)}
-                        >
-                            <option value="all">All statuses</option>
-                            {STATUS_OPTIONS.map((status) => (
-                                <option key={status} value={status}>{status}</option>
-                            ))}
-                        </select>
-
-                        <select
-                            className="rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                            value={markerScope}
-                            onChange={(e) => setMarkerScope(e.target.value)}
-                        >
-                            <option value="all">Markers: all bookings</option>
-                            <option value="filtered">Markers: filtered bookings</option>
-                        </select>
-                    </div>
-
-                    <p className="mt-3 text-xs text-gray-500">
-                        Showing {mapMarkers.length} marker{mapMarkers.length === 1 ? "" : "s"} on map
-                        {routeSources.length > 0 && ` · ${routeSources.length} route${routeSources.length === 1 ? "" : "s"}`}.
-                    </p>
-
-                    <div className="mt-4 h-[420px] overflow-hidden rounded-xl border">
-                        <MapComponent
-                            Markers={mapMarkers}
-                            userLocation={false}
-                            mapRef={mapRef}
-                            routeSources={routeSources}
-                        />
-                    </div>
+                            {status}
+                        </button>
+                    ))}
                 </div>
 
-                {/* Bookings Table */}
-                <div className="rounded-2xl border border-gray-100 bg-white shadow-sm">
+                {/* Booking Cards */}
+                <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
                     {loading ? (
-                        <p className="p-6 text-sm text-gray-500">Loading bookings...</p>
+                        <p className="text-sm text-gray-400 text-center mt-12">Loading bookings...</p>
                     ) : filteredBookings.length === 0 ? (
-                        <p className="p-6 text-sm text-gray-500">No bookings found for the selected filters.</p>
+                        <p className="text-sm text-gray-400 text-center mt-12">No bookings found.</p>
                     ) : (
-                        <div className="p-4 sm:p-6 space-y-4">
-                            {grouped.map((businessGroup) => {
-                                const businessCount = businessGroup.services.reduce(
-                                    (sum, service) => sum + service.bookings.length, 0
-                                );
+                        filteredBookings.map((booking) => {
+                            const currentStatus = getBookingStatus(booking);
+                            const isCancelled = currentStatus === "cancelled";
+                            const isUpdating = updatingId === booking.id;
+                            const hasCoords = !!getBookingCoordinates(booking);
+                            const isFocused = focusedBookingId === booking.id;
+                            const address = getBookingAddress(booking);
+                            const bookingDate = booking?.date || booking?.booking_date || booking?.created_at;
+                            const businessLogo = booking?.business_logo;
 
-                                return (
-                                    <details
-                                        key={businessGroup.key}
-                                        className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden"
-                                    >
-                                        <summary className="cursor-pointer select-none px-4 py-4 sm:px-6 bg-gray-50 flex items-center justify-between gap-3">
-                                            <div>
-                                                <div className="text-base font-semibold text-gray-900">{businessGroup.label}</div>
-                                                <div className="text-xs text-gray-500 mt-0.5">
-                                                    {businessCount} booking{businessCount === 1 ? "" : "s"}
-                                                </div>
+                            return (
+                                <div
+                                    key={booking.id}
+                                    className={`rounded-2xl border bg-white overflow-hidden transition-all ${
+                                        isFocused
+                                            ? "border-blue-400 shadow-md shadow-blue-100"
+                                            : "border-gray-100 hover:border-gray-200 hover:shadow-sm"
+                                    }`}
+                                >
+                                    {/* Business thumbnail / cover */}
+                                    <div className="relative h-28 bg-gray-100 overflow-hidden">
+                                        {businessLogo ? (
+                                            <img
+                                                src={`${media_url}${businessLogo}`}
+                                                alt={getBusinessLabel(booking)}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
+                                                <span className="text-4xl font-bold text-gray-300">
+                                                    {getBusinessLabel(booking).charAt(0).toUpperCase()}
+                                                </span>
                                             </div>
-                                            <span className="text-xs font-medium text-gray-500">
-                                                {businessGroup.services.length} service{businessGroup.services.length === 1 ? "" : "s"}
+                                        )}
+
+                                        {/* Status badge */}
+                                        <span className={`absolute top-3 right-3 rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize ${getStatusClass(currentStatus)}`}>
+                                            {currentStatus}
+                                        </span>
+
+                                        {/* Rating placeholder */}
+                                        <div className="absolute top-3 left-3 flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-full px-2 py-0.5">
+                                            <span className="text-amber-400 text-xs">★</span>
+                                            <span className="text-xs font-semibold text-gray-700">
+                                                {getServiceLabel(booking)}
                                             </span>
-                                        </summary>
-
-                                        <div className="p-4 sm:p-6 space-y-4">
-                                            {businessGroup.services.map((serviceGroup) => (
-                                                <details
-                                                    key={serviceGroup.key}
-                                                    className="rounded-2xl border border-gray-100 bg-white overflow-hidden"
-                                                    open={businessGroup.services.length === 1}
-                                                >
-                                                    <summary className="cursor-pointer select-none px-4 py-3 sm:px-5 bg-white flex items-center justify-between gap-3">
-                                                        <div className="text-sm font-semibold text-gray-900">{serviceGroup.label}</div>
-                                                        <div className="text-xs text-gray-500">
-                                                            {serviceGroup.bookings.length} booking{serviceGroup.bookings.length === 1 ? "" : "s"}
-                                                        </div>
-                                                    </summary>
-
-                                                    <div className="overflow-x-auto">
-                                                        <table className="min-w-full divide-y divide-gray-100">
-                                                            <thead className="bg-gray-50">
-                                                                <tr>
-                                                                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Customer</th>
-                                                                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Date</th>
-                                                                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Address</th>
-                                                                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Status</th>
-                                                                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Update</th>
-                                                                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Map</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody className="divide-y divide-gray-100 bg-white">
-                                                                {serviceGroup.bookings.map((booking) => {
-                                                                    const currentStatus = getBookingStatus(booking);
-                                                                    const customerName = getCustomerName(booking);
-                                                                    const bookingDate = booking?.date || booking?.booking_date || booking?.created_at;
-                                                                    const address = getBookingAddress(booking);
-                                                                    const isUpdating = updatingId === booking.id;
-                                                                    const isCancelled = currentStatus === "cancelled";
-                                                                    const hasCoords = !!getBookingCoordinates(booking);
-
-                                                                    return (
-                                                                        <tr key={booking.id}>
-                                                                            <td className="px-4 py-4 text-sm text-gray-700">{customerName}</td>
-                                                                            <td className="px-4 py-4 text-sm text-gray-700">{formatDate(bookingDate)}</td>
-                                                                            <td className="px-4 py-4 text-sm text-gray-700 max-w-[200px] truncate" title={address}>{address}</td>
-                                                                            <td className="px-4 py-4">
-                                                                                <span className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${getStatusClass(currentStatus)}`}>
-                                                                                    {currentStatus}
-                                                                                </span>
-                                                                            </td>
-                                                                            <td className="px-4 py-4">
-                                                                                <select
-                                                                                    className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none ring-blue-100 focus:ring disabled:opacity-50 disabled:cursor-not-allowed"
-                                                                                    value={currentStatus}
-                                                                                    disabled={isUpdating || isCancelled}
-                                                                                    onChange={(e) => handleStatusUpdate(booking.id, e.target.value)}
-                                                                                >
-                                                                                    {STATUS_OPTIONS.map((status) => (
-                                                                                        <option key={status} value={status}>{status}</option>
-                                                                                    ))}
-                                                                                </select>
-                                                                            </td>
-                                                                            <td className="px-4 py-4">
-                                                                                <button
-                                                                                    onClick={() => handleFlyTo(booking)}
-                                                                                    disabled={!hasCoords}
-                                                                                    title={hasCoords ? "Fly to location" : "No coordinates available"}
-                                                                                    className="rounded-lg px-3 py-2 text-xs font-semibold text-blue-600 border border-blue-200 hover:bg-blue-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                                                                                >
-                                                                                    📍 View
-                                                                                </button>
-                                                                            </td>
-                                                                        </tr>
-                                                                    );
-                                                                })}
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
-                                                </details>
-                                            ))}
                                         </div>
-                                    </details>
-                                );
-                            })}
-                        </div>
+                                    </div>
+
+                                    {/* Card body */}
+                                    <div className="p-4">
+                                        <div className="flex items-start justify-between gap-2">
+                                            <div>
+                                                <h3 className="font-semibold text-gray-900 text-sm">
+                                                    {getBusinessLabel(booking)}
+                                                </h3>
+                                                <p className="text-xs text-gray-500 mt-0.5">
+                                                    {getCustomerName(booking)}
+                                                </p>
+                                            </div>
+                                            <select
+                                                className="rounded-lg border border-gray-200 px-2 py-1 text-xs outline-none focus:ring-1 ring-blue-100 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+                                                value={currentStatus}
+                                                disabled={isUpdating || isCancelled}
+                                                onChange={(e) => handleStatusUpdate(booking.id, e.target.value)}
+                                            >
+                                                {STATUS_OPTIONS.map((s) => (
+                                                    <option key={s} value={s}>{s}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+
+                                        {/* Address */}
+                                        {address !== "—" && (
+                                            <div className="mt-2 flex items-start gap-1.5">
+                                                <span className="text-gray-400 text-xs mt-px">📍</span>
+                                                <p className="text-xs text-gray-500 line-clamp-1">{address}</p>
+                                            </div>
+                                        )}
+
+                                        {/* Date + Focus button */}
+                                        <div className="mt-3 flex items-center justify-between">
+                                            <p className="text-xs text-gray-400">{formatDate(bookingDate)}</p>
+                                            <button
+                                                onClick={() => handleFlyTo(booking)}
+                                                disabled={!hasCoords}
+                                                className="flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                            >
+                                                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                    <circle cx="12" cy="12" r="3" />
+                                                    <path d="M12 2v3M12 19v3M2 12h3M19 12h3" />
+                                                </svg>
+                                                Focus on map
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })
                     )}
                 </div>
+            </div>
+
+            {/* RIGHT — sticky map */}
+            <div className="flex-1 h-full sticky top-0">
+                {/* Legend overlay */}
+                <div className="absolute top-4 left-4 z-10 bg-white/90 backdrop-blur-sm rounded-xl px-3 py-2 shadow-sm border border-gray-100 flex items-center gap-3 text-xs text-gray-600">
+                    <span className="flex items-center gap-1.5">
+                        <span className="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block" />
+                        Business
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                        <span className="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block" />
+                        Customer
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                        <span className="w-5 h-0.5 bg-blue-400 inline-block rounded" />
+                        Route
+                    </span>
+                </div>
+
+                <MapComponent
+                    Markers={mapMarkers}
+                    userLocation={false}
+                    mapRef={mapRef}
+                    routeSources={routeSources}
+                />
             </div>
         </div>
     );
