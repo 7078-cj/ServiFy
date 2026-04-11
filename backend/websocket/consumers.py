@@ -128,7 +128,7 @@ class BusinessReviewsConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def is_business_customer(self):
         return Booking.objects.filter(
-            business_id=self.id,
+            id=self.id,
             user=self.scope['user']
         ).exists()
 
