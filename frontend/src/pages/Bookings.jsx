@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { cancelBooking, getBookings } from "../api/bookings";
 import userBookingsListener from "../listeners/userBookingsListener";
 import { useSelector } from "react-redux";
+import ConfirmDialog from "../components/ui/ConfirmDialog";
 import { normalizeBookings, formatDate, getStatusClass  } from "./BusinessBookingsDashboard";
 
 // ... normalizeBookings, formatDate, getStatusClass unchanged
@@ -10,6 +11,7 @@ export default function Bookings() {
     const [rawBookings, setRawBookings] = useState([]);
     const [loading, setLoading] = useState(false);
     const [cancellingId, setCancellingId] = useState(null)
+    const [pendingCancelId, setPendingCancelId] = useState(null)
     const { profile } = useSelector((state) => state.profile);
 
     useEffect(() => {
@@ -20,16 +22,30 @@ export default function Bookings() {
 
     userBookingsListener(profile?.id, setRawBookings);
 
-    const handleCancel = (bookingId) => {
+    const runCancelBooking = () => {
+        if (pendingCancelId == null) return
         cancelBooking(
-            bookingId,
-            (val) => setCancellingId(val ? bookingId : null),
-            () => getBookings(setRawBookings, setLoading)
+            pendingCancelId,
+            (val) => setCancellingId(val ? pendingCancelId : null),
+            () => {
+                getBookings(setRawBookings, setLoading)
+                setPendingCancelId(null)
+            }
         )
     }
 
     return (
         <div className="min-h-screen bg-gray-50 px-4 py-8 sm:px-6 lg:px-8">
+            <ConfirmDialog
+                open={pendingCancelId != null}
+                onClose={() => setPendingCancelId(null)}
+                title="Cancel this booking?"
+                description="The provider will be notified. You can book again later if needed."
+                confirmText="Cancel booking"
+                danger={false}
+                loading={cancellingId === pendingCancelId}
+                onConfirm={runCancelBooking}
+            />
             <div className="mx-auto max-w-5xl">
                 <div className="mb-6">
                     <h1 className="text-2xl font-semibold text-gray-900">My Bookings</h1>
@@ -70,7 +86,8 @@ export default function Bookings() {
 
                                                 {isPending && (
                                                     <button
-                                                        onClick={() => handleCancel(booking.id)}
+                                                        type="button"
+                                                        onClick={() => setPendingCancelId(booking.id)}
                                                         disabled={cancellingId === booking.id}
                                                         className="rounded-full px-3 py-1 text-xs font-semibold text-red-600 border border-red-200 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                                     >

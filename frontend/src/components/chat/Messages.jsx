@@ -3,6 +3,10 @@ import { fetchMessages, markMessagesRead } from '../../api/chat'
 import MessageCard from './MessageCard'
 import AddMessage from './AddMessage'
 import { chatListener } from '../../listeners/chatListener'
+import BusinessAvatar from '../business/BusinessAvatar'
+import { getConversationAvatarParticipant } from '../../utils/chatParticipants'
+
+const media_url = import.meta.env.VITE_MEDIA_URL
 
 export default function Messages({ conversation }) {
     const [messages, setMessages] = useState([])
@@ -34,11 +38,18 @@ export default function Messages({ conversation }) {
     }, [messages])
 
     const names = conversation.participants?.map(p => p.username).join(', ')
+    const primary = getConversationAvatarParticipant(conversation.participants)
+    const headerName =
+        [primary?.first_name, primary?.last_name].filter(Boolean).join(' ') || primary?.username || ''
+    const headerImageUrl = primary?.profile?.profile_image
+        ? `${media_url}${primary.profile.profile_image}`
+        : null
 
     return (
         <div className='flex-1 flex flex-col h-full bg-gray-50'>
-            <div className='px-6 py-4 bg-white border-b border-gray-200'>
-                <h3 className='font-semibold text-gray-800'>{names}</h3>
+            <div className='px-6 py-4 bg-white border-b border-gray-200 flex items-center gap-3'>
+                <BusinessAvatar name={headerName || names || '?'} imageUrl={headerImageUrl} size="sm" />
+                <h3 className='font-semibold text-gray-800 truncate'>{names}</h3>
             </div>
 
             <div className='flex-1 overflow-y-auto px-6 py-4 flex flex-col gap-2'>

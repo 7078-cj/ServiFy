@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react"
+import { toast } from "sonner"
 import BusinessAvatar from "./BusinessAvatar"
 import StarRating from "./StarRating"
 import AddReview from "./AddReview"
+import ConfirmDialog from "../ui/ConfirmDialog"
 import { Pencil, Trash2, X } from "lucide-react" 
 import {useReviewListener } from "../../listeners/reviewListener"
 
@@ -17,6 +19,8 @@ export default function ReviewsList({
 }) {
     const [editingId, setEditingId] = useState(null);
     const [rawReviews, setRawReviews] = useState(reviews || []);
+    const [deleteReviewId, setDeleteReviewId] = useState(null);
+    const [deleteReviewLoading, setDeleteReviewLoading] = useState(false);
 
     useEffect(() => {
         setRawReviews(reviews || []);
@@ -27,10 +31,34 @@ export default function ReviewsList({
         setEditingId(null); 
     };
 
+    const confirmDeleteReview = async () => {
+        if (deleteReviewId == null) return;
+        setDeleteReviewLoading(true);
+        try {
+            await onDeleteReview(deleteReviewId);
+            toast.success("Review deleted.");
+            setDeleteReviewId(null);
+        } catch (e) {
+            toast.error(e?.message || "Could not delete review.");
+        } finally {
+            setDeleteReviewLoading(false);
+        }
+    };
+
     useReviewListener(businessId, setRawReviews);
 
     return (
         <section className="max-w-2xl mx-auto py-8 px-4">
+            <ConfirmDialog
+                open={deleteReviewId != null}
+                onClose={() => !deleteReviewLoading && setDeleteReviewId(null)}
+                title="Delete this review?"
+                description="This will permanently remove your review from the business page."
+                confirmText="Delete"
+                danger
+                loading={deleteReviewLoading}
+                onConfirm={confirmDeleteReview}
+            />
             <div className="flex items-center justify-between mb-6">
                 <h2 className="text-lg font-bold text-gray-900">User Reviews</h2>
                 <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-bold">
@@ -100,7 +128,8 @@ export default function ReviewsList({
                                                             <Pencil size={14} />
                                                         </button>
                                                         <button 
-                                                            onClick={() => onDeleteReview(rev.id)}
+                                                            type="button"
+                                                            onClick={() => setDeleteReviewId(rev.id)}
                                                             className="text-gray-400 hover:text-red-600 transition-colors"
                                                         >
                                                             <Trash2 size={14} />

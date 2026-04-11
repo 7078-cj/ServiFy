@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react"
+import { toast } from "sonner"
 import AddLocationModal from "../AddLocationModal"
+import { validateBookingFields } from "../../utils/validation"
 
 export default function CreateBookingModal({
     open,
@@ -30,15 +32,23 @@ export default function CreateBookingModal({
 
     const handleSubmit = (e) => {
         e.preventDefault()
-        if (!date || !location.latitude || !location.longitude) return
-
-        const lat = parseFloat(location.latitude).toFixed(6)
-        const lng = parseFloat(location.longitude).toFixed(6)
+        const latStr = location.latitude ? String(parseFloat(location.latitude).toFixed(6)) : ""
+        const lngStr = location.longitude ? String(parseFloat(location.longitude).toFixed(6)) : ""
+        const { valid, errors } = validateBookingFields({
+            date,
+            latitude: latStr,
+            longitude: lngStr,
+        })
+        if (!valid) {
+            const msg = errors.date || errors.location || "Please complete the form."
+            toast.error(msg)
+            return
+        }
 
         onSubmit({
             date,
-            latitude: lat,
-            longitude: lng,
+            latitude: latStr,
+            longitude: lngStr,
             address: location.address,
         })
     }

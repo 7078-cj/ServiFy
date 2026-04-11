@@ -1,14 +1,20 @@
 import React, { useState, useEffect } from "react";
-import { Bell, User, Menu, X } from "lucide-react";
-import { NavLink } from "react-router-dom";
+import { LogOut, Menu, X } from "lucide-react";
+import { NavLink, useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import BusinessAvatar from "./business/BusinessAvatar";
+import AppLogo from "./AppLogo";
+import NotificationsDialog from "./notifications/NotificationsDialog";
+import { logoutUser } from "../utils/auth";
 
 const media_url = import.meta.env.VITE_MEDIA_URL;
 
 export default function Header({navItems, isProvider}) {
     const [menuOpen, setMenuOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
-    const user = JSON.parse(localStorage.getItem("user")) || null
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+    const user = JSON.parse(localStorage.getItem("user")) || null;
 
     useEffect(() => {
         const onScroll = () => setScrolled(window.scrollY > 10);
@@ -32,39 +38,40 @@ export default function Header({navItems, isProvider}) {
             >
                 {/* Top bar — Logo + Icons */}
                 <div className="border-b border-gray-100">
-                    <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
+                    <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
 
-                        {/* Left spacer */}
-                        <div className="w-32" />
+                        <AppLogo to="/" size="sm" />
 
-                        {/* Logo */}
-                        <h1
-                            className="text-[1.9rem] tracking-tight text-gray-900 select-none leading-none"
-                            style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800 }}
-                        >
-                            SERVI<span className="text-blue-600">FY</span>
-                        </h1>
-
-                        {/* Right — icons */}
-                        <div className="w-32 flex items-center justify-end gap-2">
-                            {/* Bell */}
-                            <button className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-gray-50 hover:bg-blue-50 text-gray-500 hover:text-blue-600 transition-all duration-200">
-                                <Bell size={22} strokeWidth={1.8} />
-                                {/* notification dot */}
-                                {/* <span className="absolute top-2 right-2 w-2 h-2 bg-blue-500 rounded-full ring-2 ring-white" /> */}
-                            </button>
+                        <div className="flex items-center justify-end gap-2 shrink-0">
+                            <NotificationsDialog />
 
                             {/* User */}
-                            {user && <div className="flex items-center gap-2.5 bg-gray-50 border border-gray-100 rounded-full px-3 py-2 shrink-0">
-                                <BusinessAvatar
-                                                imageUrl={user.profile.profile_image ? `${media_url}${user.profile.profile_image}` : null}
-                                                name={`${user.first_name} ${user.last_name}`}
-                                                size="sm"
-                                                />
-                                <p className="text-xs font-semibold text-gray-700">
-                                    {user.first_name} {user.last_name}
-                                </p>
-                            </div>}
+                            {user && (
+                                <div className="flex items-center gap-2 shrink-0">
+                                    <div className="hidden sm:flex items-center gap-2.5 bg-gray-50 border border-gray-100 rounded-full px-3 py-2 max-w-[140px]">
+                                        <BusinessAvatar
+                                            imageUrl={
+                                                user.profile?.profile_image
+                                                    ? `${media_url}${user.profile.profile_image}`
+                                                    : null
+                                            }
+                                            name={`${user.first_name} ${user.last_name}`}
+                                            size="sm"
+                                        />
+                                        <p className="text-xs font-semibold text-gray-700 truncate">
+                                            {user.first_name} {user.last_name}
+                                        </p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        title="Log out"
+                                        onClick={() => logoutUser(dispatch, navigate)}
+                                        className="flex items-center justify-center w-10 h-10 rounded-xl bg-gray-50 hover:bg-red-50 text-gray-500 hover:text-red-600 transition-all duration-200"
+                                    >
+                                        <LogOut size={20} strokeWidth={1.8} />
+                                    </button>
+                                </div>
+                            )}
 
                             {/* Hamburger — mobile only */}
                             <button
@@ -77,7 +84,7 @@ export default function Header({navItems, isProvider}) {
                     </div>
                 </div>
 
-                {/* Bottom bar — Nav + CTA */}
+                {/* Bottom bar — Nav */}
                 {!isProvider && <div className="border-b border-gray-100 hidden md:block">
                     <div className="max-w-5xl mx-auto px-6 py-2.5 flex items-center justify-center gap-8">
                         {navItems.map((item, i) => (
@@ -126,6 +133,16 @@ export default function Header({navItems, isProvider}) {
                                 {item.name}
                             </NavLink>
                         ))}
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setMenuOpen(false);
+                                logoutUser(dispatch, navigate);
+                            }}
+                            className="text-left text-sm font-medium py-3 text-red-600 hover:text-red-700"
+                        >
+                            Log out
+                        </button>
                     </div>
                 )}
             </header>

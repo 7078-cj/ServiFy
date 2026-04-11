@@ -1,5 +1,7 @@
 import { useState } from "react"
 import { Plus, Trash2 } from "lucide-react"
+import { toast } from "sonner"
+import ConfirmDialog from "../ui/ConfirmDialog"
 import PortfolioPreviewModal from "./PortfolioPreviewModal"
 
 const BASE_URL = import.meta.env.VITE_MEDIA_URL
@@ -11,11 +13,28 @@ export default function PortfolioGallery({
     onDelete
 }) {
     const [selectedIndex, setSelectedIndex] = useState(null)
+    const [pendingDeleteId, setPendingDeleteId] = useState(null)
 
     if (!portfolio?.length && !isOwner) return null
 
+    const confirmDeletePhoto = () => {
+        if (pendingDeleteId == null) return
+        onDelete?.(pendingDeleteId)
+        toast.success("Photo removed from portfolio.")
+        setPendingDeleteId(null)
+    }
+
     return (
         <section className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+            <ConfirmDialog
+                open={pendingDeleteId != null}
+                onClose={() => setPendingDeleteId(null)}
+                title="Remove this photo?"
+                description="It will be permanently removed from your portfolio."
+                confirmText="Remove"
+                danger
+                onConfirm={confirmDeletePhoto}
+            />
             <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-4">
                 Portfolio
             </h2>
@@ -39,7 +58,8 @@ export default function PortfolioGallery({
                         {/* DELETE */}
                         {isOwner && (
                             <button
-                                onClick={() => onDelete(item.id)}
+                                type="button"
+                                onClick={() => setPendingDeleteId(item.id)}
                                 className="absolute top-2 right-2 bg-black/60 hover:bg-red-500 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition"
                             >
                                 <Trash2 size={14} />

@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import { deleteRequest, getRequest, patchRequest, postRequest, putRequest } from "../utils/reqests/requests";
 import { requireToken } from "./access"
 
@@ -13,9 +14,10 @@ export async function createBooking(serviceId, data, setLoading, onSuccess) {
         )
 
         onSuccess?.()
+        toast.success("Booking request sent.")
     } catch (err) {
         console.error(err)
-        alert("Failed to create booking")
+        toast.error(err?.message || "Failed to create booking.")
     } finally {
         setLoading(false)
     }
@@ -32,7 +34,7 @@ export async function getBookings(setBookings, setLoading) {
         setBookings(bookings)
     } catch (err) {
         console.error(err)
-        alert("Failed to fetch bookings")
+        toast.error(err?.message || "Failed to load bookings.")
     } finally {
         setLoading(false)
     }
@@ -49,7 +51,7 @@ export async function getBusinessBookings(businessId, setBookings, setLoading) {
         setBookings(bookings)
     } catch (err) {
         console.error(err)
-        alert("Failed to fetch bookings")
+        toast.error(err?.message || "Failed to load bookings.")
     } finally {
         setLoading(false)
     } 
@@ -66,7 +68,7 @@ export async function getAllBusinessBookings(setBookings, setLoading) {
         setBookings(bookings)
     } catch (err) {
         console.error(err)
-        alert("Failed to fetch bookings")
+        toast.error(err?.message || "Failed to load bookings.")
     } finally {
         setLoading(false)
     }
@@ -82,9 +84,10 @@ export async function updateBooking(bookingId, data, setLoading, onSuccess) {
             access,
         )
         onSuccess?.()
+        toast.success("Booking updated.")
     } catch (err) {
         console.error(err)
-        alert("Failed to update booking")
+        toast.error(err?.message || "Failed to update booking.")
     } finally {
         setLoading(false)
     }
@@ -99,9 +102,10 @@ export async function deleteBooking(bookingId, setLoading, onSuccess) {
             access,
         )
         onSuccess?.()
+        toast.success("Booking removed.")
     } catch (err) {
         console.error(err)
-        alert("Failed to delete booking")
+        toast.error(err?.message || "Failed to delete booking.")
     } finally {
         setLoading(false)
     }
@@ -117,9 +121,10 @@ export async function cancelBooking(bookingId, setLoading, onSuccess) {
             access,
         )
         onSuccess?.()
+        toast.success("Booking cancelled.")
     } catch (err) {
         console.error(err)
-        alert("Failed to cancel booking")
+        toast.error(err?.message || "Failed to cancel booking.")
     } finally {
         setLoading(false)
     }

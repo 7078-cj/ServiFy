@@ -1,6 +1,6 @@
 import { useState } from "react"
+import { toast } from "sonner"
 import StarRating from "./StarRating"
-import { createFormData } from "../../utils/form/form"
 
 export default function AddReview({ onSubmit, initialData = null, buttonText = "Post Review" }) {
     const [rating, setRating] = useState(initialData?.rate || 0)
@@ -9,7 +9,10 @@ export default function AddReview({ onSubmit, initialData = null, buttonText = "
 
     const handleSubmit = async (e) => {
         e.preventDefault()
-        if (!rating) return
+        if (!rating) {
+            toast.error("Please choose a star rating.")
+            return
+        }
         setLoading(true)
         try {
             const data = {
@@ -18,11 +21,15 @@ export default function AddReview({ onSubmit, initialData = null, buttonText = "
             }
             
             await onSubmit(data)
-            // Only clear if we're not in "edit mode" (optional, but cleaner)
             if (!initialData) {
                 setRating(0)
                 setComment("")
+                toast.success("Thanks for your review!")
+            } else {
+                toast.success("Review updated.")
             }
+        } catch (err) {
+            toast.error(err?.message || "Could not save your review.")
         } finally {
             setLoading(false)
         }

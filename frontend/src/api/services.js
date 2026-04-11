@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import { deleteRequest, getRequest, postRequest, putRequest } from "../utils/reqests/requests";
 import { requireToken } from "./access";
 
@@ -36,7 +37,7 @@ export function createService(businessId, formData, setShowModal = null, onRefre
         })
         .catch(err => {
             console.error(err);
-            alert(err.message);
+            toast.error(err?.message || "Could not create service.");
         });
     }
 
@@ -67,7 +68,7 @@ export function updateService(businessId, serviceId, formData, setLoading = null
         })
         .catch(err => {
             console.error(err);
-            alert(err.message);
+            toast.error(err?.message || "Could not update service.");
         })
         .finally(() => {
             setLoading(false);
@@ -94,11 +95,12 @@ export function deleteService(businessId, serviceId, setLoading = null, onRefres
         )
         .then(res => {
             onRefresh();
+            toast.success("Service deleted.");
             return res;
         })
         .catch(err => {
             console.error(err);
-            alert(err.message);
+            toast.error(err?.message || "Could not delete service.");
         })
         .finally(() => {
             setLoading(false);

@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { toast } from "sonner";
+import { validateBusinessBasics } from "../../utils/validation";
 import {
     Dialog,
     DialogContent,
@@ -31,6 +33,7 @@ export default function AddUpdateBusinessModal({
 
     const [logoPreview, setLogoPreview] = useState(null);
     const [locationModalOpen, setLocationModalOpen] = useState(false);
+    const [saving, setSaving] = useState(false);
 
     useEffect(() => {
         if (open) {
@@ -88,9 +91,19 @@ export default function AddUpdateBusinessModal({
         }));
     };
 
-    const handleSave = () => {
-        const payload = {
+    const handleSave = async () => {
+        const { valid, errors } = validateBusinessBasics({
             name: formData.name,
+            latitude: formData.latitude,
+            longitude: formData.longitude,
+        });
+        if (!valid) {
+            toast.error(errors.name || errors.location);
+            return;
+        }
+
+        const payload = {
+            name: formData.name.trim(),
             description: formData.description,
             address: formData.address,
             latitude: formData.latitude,
@@ -102,20 +115,24 @@ export default function AddUpdateBusinessModal({
         }
 
         const formDataObj = createFormData(payload);
-
-        onSave?.(formDataObj);
-
-        // reset
-        setFormData({
-            name: "",
-            description: "",
-            logo: null,
-            latitude: "",
-            longitude: "",
-            address: "",
-        });
-        setLogoPreview(null);
-        onClose();
+        setSaving(true);
+        try {
+            await onSave?.(formDataObj);
+            toast.success(business ? "Business updated." : "Business created.");
+            setFormData({
+                name: "",
+                description: "",
+                logo: null,
+                latitude: "",
+                longitude: "",
+                address: "",
+            });
+            setLogoPreview(null);
+        } catch (e) {
+            toast.error(e?.message || "Could not save business.");
+        } finally {
+            setSaving(false);
+        }
     };
 
     const hasLocation = formData.latitude && formData.longitude;
@@ -217,15 +234,16 @@ export default function AddUpdateBusinessModal({
                         </Button>
 
                         <button
+                            type="button"
                             onClick={handleSave}
-                            disabled={!formData.name || !hasLocation}
+                            disabled={saving || !formData.name || !hasLocation}
                             className={`px-4 py-2 rounded-md text-white font-semibold transition ${
-                                !formData.name || !hasLocation
+                                saving || !formData.name || !hasLocation
                                     ? "bg-gray-300 cursor-not-allowed"
                                     : "bg-gradient-to-r from-cyan-600 to-blue-500 hover:opacity-90"
                             }`}
                         >
-                            {business ? "Update" : "Create"}
+                            {saving ? "Saving…" : business ? "Update" : "Create"}
                         </button>
                     </DialogFooter>
                 </DialogContent>

@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { toast } from "sonner";
+import { validateServiceBasics } from "../../utils/validation";
 import {
     Dialog,
     DialogContent,
@@ -27,6 +29,7 @@ export default function AddUpdateServiceModal({
     });
 
     const [thumbnailPreview, setThumbnailPreview] = useState(null);
+    const [saving, setSaving] = useState(false);
 
     useEffect(() => {
         if (open) {
@@ -69,9 +72,18 @@ export default function AddUpdateServiceModal({
         }
     };
 
-    const handleSave = () => {
-        const payload = {
+    const handleSave = async () => {
+        const { valid, errors } = validateServiceBasics({
             name: formData.name,
+            price: formData.price,
+        });
+        if (!valid) {
+            toast.error(errors.name || errors.price);
+            return;
+        }
+
+        const payload = {
+            name: formData.name.trim(),
             description: formData.description,
             price: formData.price,
         };
@@ -81,21 +93,30 @@ export default function AddUpdateServiceModal({
         }
 
         const formDataObj = createFormData(payload);
-
-        onSave?.(formDataObj);
-
-        // reset
-        setFormData({
-            name: "",
-            description: "",
-            price: "",
-            thumbnail: null,
-        });
-        setThumbnailPreview(null);
-        onClose();
+        setSaving(true);
+        try {
+            await onSave?.(formDataObj);
+            toast.success(service ? "Service updated." : "Service created.");
+            setFormData({
+                name: "",
+                description: "",
+                price: "",
+                thumbnail: null,
+            });
+            setThumbnailPreview(null);
+        } catch (e) {
+            toast.error(e?.message || "Could not save service.");
+        } finally {
+            setSaving(false);
+        }
     };
 
-    const isValid = formData.name && formData.price && parseFloat(formData.price) >= 0;
+    const isValid =
+        formData.name?.trim() &&
+        formData.price !== "" &&
+        formData.price != null &&
+        !Number.isNaN(parseFloat(formData.price)) &&
+        parseFloat(formData.price) >= 0;
 
     return (
         <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
@@ -179,15 +200,16 @@ export default function AddUpdateServiceModal({
                     </Button>
 
                     <button
+                        type="button"
                         onClick={handleSave}
-                        disabled={!isValid}
+                        disabled={saving || !isValid}
                         className={`px-4 py-2 rounded-md text-white font-semibold transition ${
-                            !isValid
+                            saving || !isValid
                                 ? "bg-gray-300 cursor-not-allowed"
                                 : "bg-gradient-to-r from-cyan-600 to-blue-500 hover:opacity-90"
                         }`}
                     >
-                        {service ? "Update" : "Create"}
+                        {saving ? "Saving…" : service ? "Update" : "Create"}
                     </button>
                 </DialogFooter>
             </DialogContent>

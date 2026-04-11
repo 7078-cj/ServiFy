@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { toast } from "sonner";
+import { validateProfileFields } from "../../utils/validation";
 import { Button } from "../ui/button";
 import {
     Dialog,
@@ -21,6 +23,8 @@ export default function EditProfileModal({ open, onClose, profile, onSave }) {
         phone: "",
     });
     const [imagePreview, setImagePreview] = useState(null);
+    const [fieldErrors, setFieldErrors] = useState({});
+    const [saving, setSaving] = useState(false);
 
     useEffect(() => {
         if (open && profile) {
@@ -33,6 +37,7 @@ export default function EditProfileModal({ open, onClose, profile, onSave }) {
             phone: profile.profile.phone || "",
         });
         setImagePreview(media_url + profile.profile.profile_image || null);
+        setFieldErrors({});
         }
     }, [open, profile]);
 
@@ -54,7 +59,14 @@ export default function EditProfileModal({ open, onClose, profile, onSave }) {
         }
     };
 
-    const handleSave = () => {
+    const handleSave = async () => {
+        const { valid, errors } = validateProfileFields(formData);
+        if (!valid) {
+            setFieldErrors(errors);
+            toast.error(Object.values(errors)[0]);
+            return;
+        }
+        setFieldErrors({});
         const data = new FormData();
         data.append("first_name", formData.first_name);
         data.append("last_name", formData.last_name);
@@ -62,10 +74,17 @@ export default function EditProfileModal({ open, onClose, profile, onSave }) {
         data.append("email", formData.email);
         data.append("phone", formData.phone);
         if (formData.profile_image) {
-        data.append("profile_image", formData.profile_image);
+            data.append("profile_image", formData.profile_image);
         }
-        onSave?.(data);
-        onClose();
+        setSaving(true);
+        try {
+            await onSave?.(data);
+            toast.success("Profile updated.");
+        } catch (e) {
+            toast.error(e?.message || "Could not update profile.");
+        } finally {
+            setSaving(false);
+        }
     };
 
     const handleClose = () => {
@@ -86,6 +105,11 @@ export default function EditProfileModal({ open, onClose, profile, onSave }) {
             </DialogHeader>
 
             <div className="space-y-4">
+            {Object.keys(fieldErrors).length > 0 && (
+                <p className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">
+                    {Object.values(fieldErrors)[0]}
+                </p>
+            )}
             {/* Image Preview + Upload */}
             <div className="flex flex-col items-center gap-3">
                 {imagePreview ? (
@@ -174,13 +198,15 @@ export default function EditProfileModal({ open, onClose, profile, onSave }) {
                 Cancel
             </Button>
             <button
+                type="button"
                 onClick={handleSave}
-                className="px-4 py-2 rounded-md text-sm font-semibold text-white transition-all hover:opacity-90"
+                disabled={saving}
+                className="px-4 py-2 rounded-md text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-60"
                 style={{
                 background: "linear-gradient(90deg, #0f6e84 0%, #3182ce 100%)",
                 }}
             >
-                Save Changes
+                {saving ? "Saving…" : "Save Changes"}
             </button>
             </DialogFooter>
         </DialogContent>

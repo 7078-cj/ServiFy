@@ -1,6 +1,9 @@
 import React, { useState } from 'react'
+import { toast } from 'sonner'
 import { deleteMessage, updateMessage } from '../../api/chat'
 import { Pencil, Trash2 } from 'lucide-react'
+import BusinessAvatar from '../business/BusinessAvatar'
+import ConfirmDialog from '../ui/ConfirmDialog'
 
 const media_url = import.meta.env.VITE_MEDIA_URL
 
@@ -12,6 +15,8 @@ export default function MessageCard({ message, conversationId, onDelete, onUpdat
     const [editing, setEditing] = useState(false)
     const [editContent, setEditContent] = useState(content)
     const [loading, setLoading] = useState(false)
+    const [deleteOpen, setDeleteOpen] = useState(false)
+    const [deleteLoading, setDeleteLoading] = useState(false)
 
     const time = new Date(created_at).toLocaleTimeString([], {
         hour: '2-digit',
@@ -29,47 +34,81 @@ export default function MessageCard({ message, conversationId, onDelete, onUpdat
             setEditing(false)
         } catch (err) {
             console.error('Update failed:', err)
+            toast.error(err?.message || 'Could not update message.')
         } finally {
             setLoading(false)
         }
     }
 
-    const handleDelete = async () => {
-        if (!window.confirm('Delete this message?')) return
+    const runDelete = async () => {
+        setDeleteLoading(true)
         try {
             await deleteMessage(conversationId, message.id)
             onDelete?.(message.id)
+            toast.success('Message deleted.')
+            setDeleteOpen(false)
         } catch (err) {
             console.error('Delete failed:', err)
+            toast.error(err?.message || 'Could not delete message.')
+        } finally {
+            setDeleteLoading(false)
         }
     }
 
+    const senderImageUrl =
+        sender?.profile?.profile_image ? `${media_url}${sender.profile.profile_image}` : null
+    const senderDisplayName =
+        [sender?.first_name, sender?.last_name].filter(Boolean).join(' ') || sender?.username || 'User'
+
     return (
-        <div className={`group flex flex-col max-w-xs ${isOwn ? 'self-end items-end' : 'self-start items-start'}`}>
+        <>
+        <ConfirmDialog
+            open={deleteOpen}
+            onClose={() => !deleteLoading && setDeleteOpen(false)}
+            title="Delete message?"
+            description="This message will be removed for everyone in the chat."
+            confirmText="Delete"
+            danger
+            loading={deleteLoading}
+            onConfirm={runDelete}
+        />
+        <div
+            className={`group flex max-w-[min(100%,20rem)] ${isOwn ? 'self-end flex-col items-end' : 'self-start flex-row items-end gap-2'}`}
+        >
             {!isOwn && (
-                <span className='text-xs text-gray-400 mb-1 ml-1'>{sender?.username}</span>
+                <BusinessAvatar
+                    name={senderDisplayName}
+                    imageUrl={senderImageUrl}
+                    size="sm"
+                />
             )}
 
-            <div className='flex items-end gap-1'>
-                {/* Edit/Delete actions — own messages only */}
-                {isOwn && (
-                    <div className='flex gap-1 mb-1 opacity-0 group-hover:opacity-100 transition-opacity'>
-                        <button
-                            onClick={() => setEditing(true)}
-                            className='text-gray-400 hover:text-blue-500 transition-colors'
-                        >
-                            <Pencil size={13} />
-                        </button>
-                        <button
-                            onClick={handleDelete}
-                            className='text-gray-400 hover:text-red-500 transition-colors'
-                        >
-                            <Trash2 size={13} />
-                        </button>
-                    </div>
+            <div className={`flex flex-col min-w-0 ${isOwn ? 'items-end' : 'items-start'}`}>
+                {!isOwn && (
+                    <span className='text-xs text-gray-400 mb-1 ml-1'>{sender?.username}</span>
                 )}
 
-                <div className={`px-4 py-2 rounded-2xl text-sm
+                <div className='flex items-end gap-1'>
+                    {/* Edit/Delete actions — own messages only */}
+                    {isOwn && (
+                        <div className='flex gap-1 mb-1 opacity-0 group-hover:opacity-100 transition-opacity'>
+                            <button
+                                onClick={() => setEditing(true)}
+                                className='text-gray-400 hover:text-blue-500 transition-colors'
+                            >
+                                <Pencil size={13} />
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setDeleteOpen(true)}
+                                className='text-gray-400 hover:text-red-500 transition-colors'
+                            >
+                                <Trash2 size={13} />
+                            </button>
+                        </div>
+                    )}
+
+                    <div className={`px-4 py-2 rounded-2xl text-sm
                     ${isOwn
                         ? 'bg-blue-500 text-white rounded-br-sm'
                         : 'bg-white text-gray-800 border border-gray-200 rounded-bl-sm'
@@ -107,14 +146,16 @@ export default function MessageCard({ message, conversationId, onDelete, onUpdat
                         <p>{content}</p>
                     )}
                 </div>
-            </div>
+                </div>
 
-            <div className='flex items-center gap-1 mt-1 px-1'>
-                <span className='text-xs text-gray-400'>{time}</span>
-                {isOwn && (
-                    <span className='text-xs text-gray-400'>{is_read ? '✓✓' : '✓'}</span>
-                )}
+                <div className={`flex items-center gap-1 mt-1 px-1 ${isOwn ? '' : 'pl-1'}`}>
+                    <span className='text-xs text-gray-400'>{time}</span>
+                    {isOwn && (
+                        <span className='text-xs text-gray-400'>{is_read ? '✓✓' : '✓'}</span>
+                    )}
+                </div>
             </div>
         </div>
+        </>
     )
 }

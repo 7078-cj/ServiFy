@@ -1,6 +1,7 @@
 import { Pencil, Trash2 } from "lucide-react"
 import AddUpdateServiceModal from "./AddUpdateServiceModal"
 import CreateBookingModal from "./CreateBookingModal"
+import ConfirmDialog from "../ui/ConfirmDialog"
 import { useState } from "react"
 import { deleteService, updateService } from "../../api/services"
 import { createBooking } from "../../api/bookings"
@@ -17,6 +18,7 @@ export default function ServiceCard({
     const [showEditModal, setShowEditModal] = useState(false)
     const [showBookingModal, setShowBookingModal] = useState(false)
     const [loading, setLoading] = useState(false)
+    const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false)
 
     const handleUpdate = async (formData) => {
         await updateService(
@@ -29,15 +31,15 @@ export default function ServiceCard({
         )
     }
 
-    const handleDelete = async () => {
-        const confirmDelete = window.confirm("Delete this service?")
-        if (!confirmDelete) return
-
+    const handleConfirmDelete = async () => {
         await deleteService(
             businessId,
             svc.id,
             setLoading,
-            onRefresh
+            () => {
+                onRefresh?.()
+                setConfirmDeleteOpen(false)
+            }
         )
     }
 
@@ -54,6 +56,17 @@ export default function ServiceCard({
     }
 
     return (
+        <>
+        <ConfirmDialog
+            open={confirmDeleteOpen}
+            onClose={() => setConfirmDeleteOpen(false)}
+            title="Delete this service?"
+            description={`"${svc.name}" will be removed. Customers will no longer be able to book it.`}
+            confirmText="Delete"
+            danger
+            loading={loading}
+            onConfirm={handleConfirmDelete}
+        />
         <div className="flex gap-4 bg-gray-50 rounded-2xl p-4 hover:shadow-md transition-all group">
             
             {/* IMAGE */}
@@ -96,9 +109,10 @@ export default function ServiceCard({
                                 </button>
 
                                 <button
+                                    type="button"
                                     disabled={loading}
                                     className="text-gray-400 hover:text-red-500"
-                                    onClick={handleDelete}
+                                    onClick={() => setConfirmDeleteOpen(true)}
                                 >
                                     <Trash2 size={16} />
                                 </button>
@@ -170,5 +184,6 @@ export default function ServiceCard({
                 service={svc}
             />
         </div>
+        </>
     )
 }

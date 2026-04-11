@@ -1,79 +1,85 @@
 import { useState, useEffect } from "react";
 
-export default function VerifyCodeStep({ onSubmit, onResend }) {
+export default function VerifyCodeStep({ onSubmit, onResend, email }) {
+    const [code, setCode] = useState("");
+    const [timeLeft, setTimeLeft] = useState(300);
 
-  const [code, setCode] = useState("");
-  const [timeLeft, setTimeLeft] = useState(300); 
+    useEffect(() => {
+        if (timeLeft <= 0) return;
 
-  useEffect(() => {
+        const timer = setInterval(() => {
+            setTimeLeft((prev) => prev - 1);
+        }, 1000);
 
-    if (timeLeft <= 0) return;
+        return () => clearInterval(timer);
+    }, [timeLeft]);
 
-    const timer = setInterval(() => {
-      setTimeLeft(prev => prev - 1);
-    }, 1000);
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        onSubmit(code);
+    };
 
-    return () => clearInterval(timer);
+    const handleResend = () => {
+        onResend();
+        setTimeLeft(300);
+    };
 
-  }, [timeLeft]);
+    const formatTime = () => {
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onSubmit(code);
-  };
+        return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+    };
 
-  const handleResend = () => {
-    onResend();
-    setTimeLeft(300);
-  };
+    return (
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+            {email && (
+                <p className="text-sm text-gray-600 -mt-1">
+                    We sent a code to{" "}
+                    <span className="font-semibold text-gray-900">{email}</span>
+                </p>
+            )}
 
-  const formatTime = () => {
-    const minutes = Math.floor(timeLeft / 60);
-    const seconds = timeLeft % 60;
+            <label className="flex flex-col text-sm font-medium text-gray-700">
+                Verification code
+                <input
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="••••"
+                    value={code}
+                    onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                    className="mt-1.5 px-4 py-3 border border-gray-300 rounded-xl text-center tracking-[0.35em] text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition shadow-sm"
+                    maxLength={4}
+                    required
+                    autoComplete="one-time-code"
+                />
+            </label>
 
-    return `${minutes}:${seconds.toString().padStart(2,"0")}`;
-  };
+            <button
+                type="submit"
+                className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold text-sm transition shadow-md hover:shadow-lg"
+            >
+                Verify code
+            </button>
 
-  return (
-    <form
-      onSubmit={handleSubmit}
-      className="flex flex-col gap-4 bg-white p-6 rounded-xl shadow-md"
-    >
-
-      <input
-        type="text"
-        placeholder="Enter 4-digit code"
-        value={code}
-        onChange={(e)=>setCode(e.target.value)}
-        className="border rounded-lg px-4 py-2 text-center tracking-widest text-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        maxLength={4}
-        required
-      />
-
-      <button
-        type="submit"
-        className="bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
-      >
-        Verify Code
-      </button>
-
-      <div className="text-center text-sm text-gray-500">
-        Code expires in <span className="font-semibold">{formatTime()}</span>
-      </div>
-
-      <button
-        type="button"
-        onClick={handleResend}
-        disabled={timeLeft > 0}
-        className={`text-sm font-medium ${
-          timeLeft > 0
-          ? "text-gray-400 cursor-not-allowed"
-          : "text-blue-600 hover:underline"
-        }`}
-      >
-        Resend Code
-      </button>
-
-    </form>
-  );
+            <div className="rounded-xl bg-gray-50 border border-gray-100 px-4 py-3 text-center">
+                <p className="text-xs text-gray-500">
+                    Code expires in{" "}
+                    <span className="font-semibold tabular-nums text-gray-800">{formatTime()}</span>
+                </p>
+                <button
+                    type="button"
+                    onClick={handleResend}
+                    disabled={timeLeft > 0}
+                    className={`mt-2 text-sm font-medium transition ${
+                        timeLeft > 0
+                            ? "text-gray-400 cursor-not-allowed"
+                            : "text-blue-600 hover:text-blue-700 hover:underline"
+                    }`}
+                >
+                    Resend code
+                </button>
+            </div>
+        </form>
+    );
 }
