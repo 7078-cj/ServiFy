@@ -1,7 +1,7 @@
 import React from "react";
 import { MapPin, Star, Users, DollarSign, ImageOff, Crosshair, X } from "lucide-react";
 
-const BASE_URL = "http://localhost:8000/media/";
+const BASE_URL = import.meta.env.VITE_MEDIA_URL;
 
 export default function BusinessCard({ business, onClick, isFocused, onFocusToggle, isDashboard = true }) {
     const {
