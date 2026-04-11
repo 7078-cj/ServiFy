@@ -39,7 +39,7 @@ The project uses a React + Vite frontend and a Django REST backend with JWT auth
 - Redis (optional for channels/caching/celery broker)
 - SQLite (default local database)
 
-## Project Structure
+<!-- ## Project Structure
 
 ```text
 Service_Marketplace/
@@ -85,7 +85,7 @@ Service_Marketplace/
 |   |-- vite.config.js
 |   `-- .env.example
 `-- README.md
-```
+``` -->
 
 ## Architecture Diagram
 
@@ -119,7 +119,7 @@ sequenceDiagram
     API-->>FE: New access token
 ```
 
-## API Overview
+<!-- ## API Overview
 
 Base path: `http://127.0.0.1:8000/api/`
 
@@ -149,7 +149,7 @@ Base path: `http://127.0.0.1:8000/api/`
 - `GET|POST /businesses/<business_pk>/reviews/`
 - `GET|PUT|PATCH|DELETE /businesses/<business_pk>/reviews/<id>/`
 - `GET|POST /businesses/<business_pk>/services/`
-- `GET|PUT|PATCH|DELETE /businesses/<business_pk>/services/<id>/`
+- `GET|PUT|PATCH|DELETE /businesses/<business_pk>/services/<id>/` -->
 
 ## Environment Variables
 
