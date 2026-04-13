@@ -2,7 +2,7 @@ import useWebSocket from '../hooks/useWebsocket'
 import { handleMessage } from './utils/listenerUtils'
 
 export function useReviewListener(businessId, set) {
-    useWebSocket(
+    return useWebSocket(
         `ws/business_reviews/${businessId}/`,
         {
             onOpen: () => console.log("Connected to reviews"),

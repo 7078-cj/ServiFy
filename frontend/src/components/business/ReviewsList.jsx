@@ -45,7 +45,7 @@ export default function ReviewsList({
         }
     };
 
-    useReviewListener(businessId, setRawReviews);
+    const { connectionStatus: reviewsSocketStatus } = useReviewListener(businessId, setRawReviews);
 
     return (
         <section className="max-w-2xl mx-auto py-8 px-4">
@@ -61,9 +61,26 @@ export default function ReviewsList({
             />
             <div className="flex items-center justify-between mb-6">
                 <h2 className="text-lg font-bold text-gray-900">User Reviews</h2>
-                <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-bold">
-                    {rawReviews?.length || 0} Total
-                </span>
+                <div className="flex items-center gap-2">
+                    <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-bold">
+                        {rawReviews?.length || 0} Total
+                    </span>
+                    <span
+                        className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                            reviewsSocketStatus === "connected"
+                                ? "bg-emerald-100 text-emerald-700"
+                                : reviewsSocketStatus === "connecting"
+                                    ? "bg-amber-100 text-amber-700"
+                                    : "bg-gray-200 text-gray-700"
+                        }`}
+                    >
+                        {reviewsSocketStatus === "connected"
+                            ? "Live"
+                            : reviewsSocketStatus === "connecting"
+                                ? "Connecting..."
+                                : "Offline"}
+                    </span>
+                </div>
             </div>
 
             {/* Only show "Add Review" if not currently editing another one */}

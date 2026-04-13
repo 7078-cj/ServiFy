@@ -3,7 +3,7 @@ import useWebSocket from '../hooks/useWebsocket'
 import { handleMessage } from './utils/listenerUtils'
 
 export function chatListener(conversationId, set) {
-    useWebSocket(
+    return useWebSocket(
         `ws/chat/${conversationId}/`,
         {
             onOpen: () => console.log("Connected to chat"),

@@ -34,10 +34,27 @@ export default function Chats() {
         }
     }, [id, conversations])
 
-    conversationListener(user?.id, setConversations)
+    const { connectionStatus: conversationsSocketStatus } = conversationListener(user?.id, setConversations)
 
     return (
-        <div className='flex flex-row h-screen bg-gray-100'>
+        <div className='flex flex-row h-screen bg-gray-100 relative'>
+            <div className="absolute top-3 right-4 z-10">
+                <span
+                    className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                        conversationsSocketStatus === "connected"
+                            ? "bg-emerald-100 text-emerald-700"
+                            : conversationsSocketStatus === "connecting"
+                                ? "bg-amber-100 text-amber-700"
+                                : "bg-gray-200 text-gray-700"
+                    }`}
+                >
+                    {conversationsSocketStatus === "connected"
+                        ? "Realtime: Live"
+                        : conversationsSocketStatus === "connecting"
+                            ? "Realtime: Connecting..."
+                            : "Realtime: Offline"}
+                </span>
+            </div>
             <ConversationList
                 conversations={conversations}
                 loading={loading}

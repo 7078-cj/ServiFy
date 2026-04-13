@@ -9,9 +9,11 @@ function Login() {
   const dispatch = useDispatch()
   const nav = useNavigate()
   const [errors, setErrors] = useState({})
+  const [submitting, setSubmitting] = useState(false)
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
+    if (submitting) return
     const username = e.target.username.value
     const password = e.target.password.value
     const { valid, errors: next } = validateLoginFields(username, password)
@@ -20,7 +22,12 @@ function Login() {
       return
     }
     setErrors({})
-    loginUser(e, dispatch, nav)
+    setSubmitting(true)
+    try {
+      await loginUser(e, dispatch, nav)
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -77,9 +84,10 @@ function Login() {
 
         <button
           type="submit"
-          className="w-full py-2.5 bg-blue-500 hover:bg-blue-600 active:bg-blue-700 rounded-lg text-white font-semibold transition shadow-md hover:shadow-lg"
+          disabled={submitting}
+          className="w-full py-2.5 bg-blue-500 hover:bg-blue-600 active:bg-blue-700 rounded-lg text-white font-semibold transition shadow-md hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed"
         >
-          Login
+          {submitting ? "Logging in..." : "Login"}
         </button>
 
       </form>

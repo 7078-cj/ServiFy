@@ -20,7 +20,7 @@ export default function Bookings() {
 
     const bookings = useMemo(() => normalizeBookings(rawBookings), [rawBookings]);
 
-    userBookingsListener(profile?.id, setRawBookings);
+    const { connectionStatus: bookingsSocketStatus } = userBookingsListener(profile?.id, setRawBookings);
 
     const runCancelBooking = () => {
         if (pendingCancelId == null) return
@@ -51,6 +51,16 @@ export default function Bookings() {
                     <h1 className="text-2xl font-semibold text-gray-900">My Bookings</h1>
                     <p className="mt-1 text-sm text-gray-600">
                         Track all your upcoming and past service bookings.
+                    </p>
+                    <p className="mt-2 text-xs font-medium text-gray-500">
+                        Realtime updates:{" "}
+                        <span className={bookingsSocketStatus === "connected" ? "text-emerald-600" : bookingsSocketStatus === "connecting" ? "text-amber-600" : "text-gray-500"}>
+                            {bookingsSocketStatus === "connected"
+                                ? "Live"
+                                : bookingsSocketStatus === "connecting"
+                                    ? "Connecting..."
+                                    : "Offline"}
+                        </span>
                     </p>
                 </div>
 

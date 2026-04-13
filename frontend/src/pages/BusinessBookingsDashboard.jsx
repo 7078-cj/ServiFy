@@ -168,7 +168,7 @@ export default function BusinessBookingsDashboard() {
         });
     };
 
-    businessBookingsListener(profile?.id, setRawBookings);
+    const { connectionStatus: businessBookingsSocketStatus } = businessBookingsListener(profile?.id, setRawBookings);
 
     return (
         <div className="flex h-screen bg-gray-50 overflow-hidden">
@@ -182,6 +182,16 @@ export default function BusinessBookingsDashboard() {
                     <p className="text-xs text-gray-500 mt-0.5">
                         {filteredBookings.length} booking{filteredBookings.length === 1 ? "" : "s"}
                         {selectedStatus !== "all" && ` · ${selectedStatus}`}
+                    </p>
+                    <p className="text-xs font-medium text-gray-500 mt-1">
+                        Realtime updates:{" "}
+                        <span className={businessBookingsSocketStatus === "connected" ? "text-emerald-600" : businessBookingsSocketStatus === "connecting" ? "text-amber-600" : "text-gray-500"}>
+                            {businessBookingsSocketStatus === "connected"
+                                ? "Live"
+                                : businessBookingsSocketStatus === "connecting"
+                                    ? "Connecting..."
+                                    : "Offline"}
+                        </span>
                     </p>
                 </div>
 

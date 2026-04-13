@@ -24,7 +24,7 @@ export const loginUser = async (e, dispatch, navigate) => {
     if (!valid) {
         const first = Object.values(errors)[0];
         toast.error(first);
-        return;
+        return false;
     }
 
     try {
@@ -43,7 +43,7 @@ export const loginUser = async (e, dispatch, navigate) => {
 
         if (!response.ok) {
             toast.error(getApiErrorMessage(data));
-            return;
+            return false;
         }
 
         const tokens = data;
@@ -69,9 +69,11 @@ export const loginUser = async (e, dispatch, navigate) => {
         dispatch(setProfile(profile));
         toast.success("You're signed in.");
         navigate("/");
+        return true;
     } catch (error) {
         console.error("Error during login:", error);
         toast.error(error?.message || "Could not sign in. Try again.");
+        return false;
     }
 };
 
@@ -90,7 +92,7 @@ export const registerUser = async (e, dispatch, nav) => {
     const { valid, errors } = validateRegisterFields(fields);
     if (!valid) {
         toast.error(Object.values(errors)[0]);
-        return;
+        return false;
     }
 
     try {
@@ -111,14 +113,15 @@ export const registerUser = async (e, dispatch, nav) => {
         const data = await response.json().catch(() => ({}));
 
         if (response.status === 201) {
-            await loginUser(e, dispatch, nav);
-            return;
+            return await loginUser(e, dispatch, nav);
         }
 
         toast.error(getApiErrorMessage(data));
+        return false;
     } catch (err) {
         console.error(err);
         toast.error(err?.message || "Registration failed. Try again.");
+        return false;
     }
 };
 

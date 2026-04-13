@@ -1,11 +1,10 @@
-import React from 'react'
 import useWebSocket from '../hooks/useWebsocket'
 import { handleMessage } from './utils/listenerUtils'
 
 
 
 export default function businessBookingsListener(userId,set) {
-    const { connected, lastMessage } = useWebSocket(
+    return useWebSocket(
         `ws/business_bookings/${userId}/`,
         {
             onOpen: () => console.log("Connected"),

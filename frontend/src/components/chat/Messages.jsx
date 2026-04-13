@@ -31,7 +31,7 @@ export default function Messages({ conversation }) {
         markMessagesRead(conversation.id).catch(err => console.error("Mark read error:", err))
     }, [conversation.id])
 
-    chatListener(conversation.id,setMessages)
+    const { connectionStatus: chatConnectionStatus } = chatListener(conversation.id, setMessages)
 
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -50,6 +50,21 @@ export default function Messages({ conversation }) {
             <div className='px-6 py-4 bg-white border-b border-gray-200 flex items-center gap-3'>
                 <BusinessAvatar name={headerName || names || '?'} imageUrl={headerImageUrl} size="sm" />
                 <h3 className='font-semibold text-gray-800 truncate'>{names}</h3>
+                <span
+                    className={`ml-auto rounded-full px-2.5 py-1 text-xs font-semibold ${
+                        chatConnectionStatus === "connected"
+                            ? "bg-emerald-100 text-emerald-700"
+                            : chatConnectionStatus === "connecting"
+                                ? "bg-amber-100 text-amber-700"
+                                : "bg-gray-200 text-gray-700"
+                    }`}
+                >
+                    {chatConnectionStatus === "connected"
+                        ? "Live"
+                        : chatConnectionStatus === "connecting"
+                            ? "Connecting..."
+                            : "Offline"}
+                </span>
             </div>
 
             <div className='flex-1 overflow-y-auto px-6 py-4 flex flex-col gap-2'>
