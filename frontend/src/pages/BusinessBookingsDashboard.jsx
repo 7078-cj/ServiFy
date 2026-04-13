@@ -168,7 +168,7 @@ export default function BusinessBookingsDashboard() {
         });
     };
 
-    const { connectionStatus: businessBookingsSocketStatus } = businessBookingsListener(profile?.id, setRawBookings);
+    const { connectionStatus: businessBookingsSocketStatus } = businessBookingsListener(profile?.id, setRawBookings, fetchBookings);
 
     return (
         <div className="flex h-screen bg-gray-50 overflow-hidden">

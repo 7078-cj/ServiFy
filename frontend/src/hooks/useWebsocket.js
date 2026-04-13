@@ -15,6 +15,7 @@ export default function useWebSocket(url, options = {}) {
         onClose,
         onError,
         onMessage,
+        onRefresh,
         reconnect = false,
         reconnectInterval = 3000,
     } = options
@@ -38,6 +39,11 @@ export default function useWebSocket(url, options = {}) {
                 setConnected(true)
                 setConnectionStatus("connected")
                 onOpen && onOpen()
+                if (onRefresh) {
+                    Promise.resolve(onRefresh()).catch((err) => {
+                        console.error("WebSocket refresh callback failed:", err)
+                    })
+                }
             }
 
             socket.onmessage = (event) => {

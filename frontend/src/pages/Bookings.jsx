@@ -20,7 +20,11 @@ export default function Bookings() {
 
     const bookings = useMemo(() => normalizeBookings(rawBookings), [rawBookings]);
 
-    const { connectionStatus: bookingsSocketStatus } = userBookingsListener(profile?.id, setRawBookings);
+    const { connectionStatus: bookingsSocketStatus } = userBookingsListener(
+        profile?.id,
+        setRawBookings,
+        () => getBookings(setRawBookings, setLoading)
+    );
 
     const runCancelBooking = () => {
         if (pendingCancelId == null) return

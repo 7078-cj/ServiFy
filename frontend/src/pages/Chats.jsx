@@ -12,17 +12,18 @@ export default function Chats() {
     const { id } = useParams()
     const user = JSON.parse(localStorage.getItem("user")) || null
 
-    useEffect(() => {
-        const loadConversations = async () => {
-            try {
-                const res = await fetchConversations()
-                setConversations(res)
-            } catch (err) {
-                console.error("Error fetching conversations:", err)
-            } finally {
-                setLoading(false)
-            }
+    const loadConversations = async () => {
+        try {
+            const res = await fetchConversations()
+            setConversations(res)
+        } catch (err) {
+            console.error("Error fetching conversations:", err)
+        } finally {
+            setLoading(false)
         }
+    }
+
+    useEffect(() => {
         loadConversations()
     }, [])
 
@@ -34,7 +35,7 @@ export default function Chats() {
         }
     }, [id, conversations])
 
-    const { connectionStatus: conversationsSocketStatus } = conversationListener(user?.id, setConversations)
+    const { connectionStatus: conversationsSocketStatus } = conversationListener(user?.id, setConversations, loadConversations)
 
     return (
         <div className='flex flex-row h-screen bg-gray-100 relative'>

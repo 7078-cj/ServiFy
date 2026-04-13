@@ -208,6 +208,7 @@ export default function BusinessPage() {
                             onDeleteReview={handleDeleteReview}
                             currentUser={user}
                             businessId={id}
+                            onRefresh={fetchBusiness}
                         />
                     </div>
                 </div>

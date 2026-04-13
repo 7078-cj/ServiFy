@@ -31,7 +31,7 @@ export default function Messages({ conversation }) {
         markMessagesRead(conversation.id).catch(err => console.error("Mark read error:", err))
     }, [conversation.id])
 
-    const { connectionStatus: chatConnectionStatus } = chatListener(conversation.id, setMessages)
+    const { connectionStatus: chatConnectionStatus } = chatListener(conversation.id, setMessages, loadMessages)
 
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' })

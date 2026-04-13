@@ -15,7 +15,8 @@ export default function ReviewsList({
     onUpdateReview, 
     onDeleteReview, 
     currentUser,
-    businessId
+    businessId,
+    onRefresh
 }) {
     const [editingId, setEditingId] = useState(null);
     const [rawReviews, setRawReviews] = useState(reviews || []);
@@ -45,7 +46,7 @@ export default function ReviewsList({
         }
     };
 
-    const { connectionStatus: reviewsSocketStatus } = useReviewListener(businessId, setRawReviews);
+    const { connectionStatus: reviewsSocketStatus } = useReviewListener(businessId, setRawReviews, onRefresh);
 
     return (
         <section className="max-w-2xl mx-auto py-8 px-4">
