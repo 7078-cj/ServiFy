@@ -73,7 +73,7 @@ export default function BusinessPage() {
 
     useEffect(() => {
         fetchBusiness()
-    }, [fetchBusiness])
+    }, [])
 
     if (loading) return <BusinessPageSkeleton />
 
