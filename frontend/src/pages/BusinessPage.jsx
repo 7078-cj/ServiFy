@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { useParams } from "react-router-dom"
 import { useSelector } from "react-redux"
 import BusinessHeader from "../components/business/BusinessHeader"
@@ -28,9 +28,20 @@ export default function BusinessPage() {
     const [servicesModalOpen, setServicesModalOpen] = useState(false)
     const user = JSON.parse(localStorage.getItem("user")) || null
 
-    const fetchBusiness = async () => {
+    const fetchBusiness = useCallback(async ({ silent = false } = {}) => {
+        if (silent) {
+            try {
+                setError(null)
+                const refreshed = await getBusiness(id)
+                setBusiness(refreshed)
+            } catch {
+                setError("Failed to load business details.")
+            }
+            return
+        }
+
         await getBusiness(id, setBusiness, setLoading, setError)
-    }
+    }, [id])
 
     const handleBusinessSave = async (formData) => {
         await updateBusiness(id, formData, setBusinessModalOpen, setBusiness)
@@ -62,7 +73,7 @@ export default function BusinessPage() {
 
     useEffect(() => {
         fetchBusiness()
-    }, [id])
+    }, [fetchBusiness])
 
     if (loading) return <BusinessPageSkeleton />
 
@@ -208,7 +219,7 @@ export default function BusinessPage() {
                             onDeleteReview={handleDeleteReview}
                             currentUser={user}
                             businessId={id}
-                            onRefresh={fetchBusiness}
+                            onRefresh={() => fetchBusiness({ silent: true })}
                         />
                     </div>
                 </div>
