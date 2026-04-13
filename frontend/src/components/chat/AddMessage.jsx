@@ -1,12 +1,14 @@
 import React, { useState, useRef } from 'react'
 import { createMessage } from '../../api/chat'
 
-export default function AddMessage({ conversationId}) {
+export default function AddMessage({ conversationId, chatConnectionStatus }) {
     const [content, setContent] = useState('')
     const [sending, setSending] = useState(false)
     const [image, setImage] = useState(null)
     const [preview, setPreview] = useState(null)
     const fileInputRef = useRef(null)
+
+    const isDisabled = chatConnectionStatus !== "connected"
 
     const handleImageChange = (e) => {
         const file = e.target.files[0]
@@ -54,6 +56,18 @@ export default function AddMessage({ conversationId}) {
     return (
         <div className='bg-white border-t border-gray-200'>
 
+            {chatConnectionStatus !== "connected" && (
+                <div className={`px-4 py-2 text-xs font-medium text-center ${
+                    chatConnectionStatus === "connecting"
+                        ? "bg-amber-50 text-amber-700"
+                        : "bg-gray-100 text-gray-500"
+                }`}>
+                    {chatConnectionStatus === "connecting"
+                        ? "Connecting to chat..."
+                        : "You are offline"}
+                </div>
+            )}
+
             {preview && (
                 <div className='px-4 pt-3'>
                     <div className='relative inline-block'>
@@ -79,11 +93,13 @@ export default function AddMessage({ conversationId}) {
                     ref={fileInputRef}
                     onChange={handleImageChange}
                     className='hidden'
+                    disabled={isDisabled}
                 />
 
                 <button
                     onClick={() => fileInputRef.current.click()}
-                    className='text-gray-400 hover:text-blue-500 transition-colors pb-2 flex-shrink-0'
+                    disabled={isDisabled}
+                    className='text-gray-400 hover:text-blue-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors pb-2 flex-shrink-0'
                     title='Attach image'
                 >
                     <svg xmlns='http://www.w3.org/2000/svg' className='w-5 h-5' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
@@ -92,18 +108,25 @@ export default function AddMessage({ conversationId}) {
                 </button>
 
                 <textarea
-                    className='flex-1 resize-none rounded-xl border border-gray-200 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 max-h-32'
+                    className='flex-1 resize-none rounded-xl border border-gray-200 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 max-h-32 disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed'
                     rows={1}
-                    placeholder='Type a message...'
+                    placeholder={
+                        chatConnectionStatus === "connecting"
+                            ? "Connecting..."
+                            : chatConnectionStatus !== "connected"
+                                ? "Unavailable offline"
+                                : "Type a message..."
+                    }
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
                     onKeyDown={handleKeyDown}
+                    disabled={isDisabled}
                 />
 
                 <button
                     onClick={handleSend}
-                    disabled={sending || (!content.trim() && !image)}
-                    className='bg-blue-500 hover:bg-blue-600 disabled:opacity-40 text-white text-sm font-medium px-4 py-2 rounded-xl transition-colors flex-shrink-0'
+                    disabled={sending || (!content.trim() && !image) || isDisabled}
+                    className='bg-blue-500 hover:bg-blue-600 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium px-4 py-2 rounded-xl transition-colors flex-shrink-0'
                 >
                     {sending ? '...' : 'Send'}
                 </button>
