@@ -87,13 +87,6 @@ class BusinessReviewsConsumer(AsyncWebsocketConsumer):
             await self.close(code=4003)
             return
 
-        self.is_owner = await self.is_business_owner()
-        if not self.is_owner:
-            is_customer = await self.is_business_customer()
-            if not is_customer:
-                await self.close(code=4003)
-                return
-
         await self.channel_layer.group_add(self.group_name, self.channel_name)
         await self.accept()
 
