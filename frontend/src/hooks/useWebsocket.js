@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react"
-import { requireToken } from "../api/access"
+import { useSelector } from "react-redux"
+
 
 export default function useWebSocket(url, options = {}) {
     const BASE_URL = import.meta.env.VITE_WS_URL || "ws://localhost:8000"
@@ -8,7 +9,7 @@ export default function useWebSocket(url, options = {}) {
     const [connected, setConnected] = useState(false)
     const [connectionStatus, setConnectionStatus] = useState("connecting")
     const [lastMessage, setLastMessage] = useState(null)
-    const token = requireToken()
+    const { tokens } = useSelector((state) => state.auth);
 
     const {
         onOpen,
@@ -21,7 +22,7 @@ export default function useWebSocket(url, options = {}) {
     } = options
 
     useEffect(() => {
-        if (!fullUrl || !token) {
+        if (!fullUrl || !tokens) {
             setConnected(false)
             setConnectionStatus("disconnected")
             return
@@ -32,7 +33,7 @@ export default function useWebSocket(url, options = {}) {
 
         const connect = () => {
             setConnectionStatus("connecting")
-            socket = new WebSocket(`${fullUrl}?token=${token}`)
+            socket = new WebSocket(`${fullUrl}?token=${tokens.access}`)
             socketRef.current = socket
 
             socket.onopen = () => {
@@ -78,7 +79,7 @@ export default function useWebSocket(url, options = {}) {
             if (reconnectTimeout) clearTimeout(reconnectTimeout)
             socket?.close()
         }
-    }, [fullUrl, reconnect, reconnectInterval, token])
+    }, [fullUrl, reconnect, reconnectInterval, tokens])
 
     const sendMessage = (data) => {
         if (socketRef.current && connected) {
