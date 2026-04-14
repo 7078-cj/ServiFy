@@ -50,10 +50,10 @@ export default function Chats() {
                     }`}
                 >
                     {conversationsSocketStatus === "connected"
-                        ? "Realtime: Live"
+                        ? "Connected"
                         : conversationsSocketStatus === "connecting"
-                            ? "Realtime: Connecting..."
-                            : "Realtime: Offline"}
+                            ? "Connecting..."
+                            : "Offline"}
                 </span>
             </div>
             <ConversationList

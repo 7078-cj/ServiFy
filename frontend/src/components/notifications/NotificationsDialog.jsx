@@ -1,28 +1,83 @@
-import React, { useState } from "react";
-import { Bell } from "lucide-react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import { MOCK_NOTIFICATIONS } from "../../data/mockNotifications";
+import NotificationBellTrigger from "./NotificationBellTrigger";
 import NotificationsPanel from "./NotificationsPanel";
+import { useNotificationListener } from "../../listeners/notificationListener";
+import { fetchNotifications } from "../../api/notifications";
 
-/**
- * Notification center dialog. Uses mock data locally until an API is wired.
- * Pass `notifications` + `onMarkAllRead` later for a controlled mode.
- *
- * Default bell uses Radix’s own trigger (no `asChild`) so open/close works reliably.
- * Pass a custom `trigger` only if it uses React.forwardRef and spreads props to a DOM node.
- */
-export default function NotificationsDialog({ trigger, notifications: controlled, onMarkAllRead }) {
-    const [internal, setInternal] = useState(MOCK_NOTIFICATIONS);
+const SUPPORTED_TYPES = new Set(["booking", "message", "review", "system"]);
+
+const getRelativeTimeLabel = (value) => {
+    if (!value) return "Just now";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "Just now";
+
+    const diffMs = Date.now() - date.getTime();
+    const diffMinutes = Math.floor(diffMs / 60000);
+
+    if (diffMinutes < 1) return "Just now";
+    if (diffMinutes < 60) return `${diffMinutes} min ago`;
+
+    const diffHours = Math.floor(diffMinutes / 60);
+    if (diffHours < 24) return `${diffHours} hr${diffHours === 1 ? "" : "s"} ago`;
+
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays < 7) return `${diffDays} day${diffDays === 1 ? "" : "s"} ago`;
+
+    return date.toLocaleDateString();
+};
+
+const normalizeNotifications = (payload) => {
+    const items = Array.isArray(payload) ? payload : payload?.results || [];
+
+    return items.map((item) => {
+        const type = String(item?.type || item?.notification_type || "system").toLowerCase();
+        const createdAt = item?.created_at || item?.createdAt || item?.timestamp || null;
+
+        return {
+            id: item?.id ?? crypto.randomUUID(),
+            type: SUPPORTED_TYPES.has(type) ? type : "system",
+            title: item?.title || "Notification",
+            body: item?.body || item?.message || item?.description || "",
+            timeLabel: getRelativeTimeLabel(createdAt),
+            unread: item?.unread ?? !(item?.read ?? true),
+            createdAt,
+        };
+    });
+};
+
+export default function NotificationDialog({ trigger, notifications: controlled, onMarkAllRead }) {
+    const currentUserId = JSON.parse(localStorage.getItem("user"))?.id;
+    const [internal, setInternal] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     const isControlled = controlled != null;
     const items = isControlled ? controlled : internal;
+    const unreadCount = useMemo(() => items.filter((n) => n.unread).length, [items]);
 
-    const unreadCount = items.filter((n) => n.unread).length;
+    const loadNotifications = useCallback(async () => {
+        if (!currentUserId) return;
+        setLoading(true);
+        try {
+            const res = await fetchNotifications();
+            setInternal(normalizeNotifications(res));
+        } catch (error) {
+            console.error("Failed to fetch notifications:", error);
+        } finally {
+            setLoading(false);
+        }
+    }, [currentUserId]);
 
-    const handleMarkAllReadInternal = () => {
-        setInternal((prev) => prev.map((n) => ({ ...n, unread: false })));
-    };
+    useEffect(() => {
+        if (!isControlled) loadNotifications();
+    }, [isControlled, loadNotifications]);
+
+    const { connectionStatus } = useNotificationListener(currentUserId, setInternal, loadNotifications);
+
+    const handleMarkAllReadInternal = useCallback(() => {
+        setInternal((prev) => prev.map((item) => ({ ...item, unread: false })));
+    }, []);
 
     const handleMarkAllRead = isControlled ? onMarkAllRead : handleMarkAllReadInternal;
 
@@ -31,22 +86,8 @@ export default function NotificationsDialog({ trigger, notifications: controlled
             {trigger ? (
                 <DialogTrigger asChild>{trigger}</DialogTrigger>
             ) : (
-                <DialogTrigger
-                    className={cn(
-                        "relative flex h-10 w-10 items-center justify-center rounded-xl bg-gray-50 text-gray-500",
-                        "transition-all duration-200 hover:bg-blue-50 hover:text-blue-600"
-                    )}
-                    title={
-                        unreadCount > 0 ? `${unreadCount} unread notifications` : "Notifications"
-                    }
-                >
-                    <Bell size={22} strokeWidth={1.8} />
-                    {unreadCount > 0 && (
-                        <span className="absolute top-2 right-2 flex h-2 w-2" aria-hidden>
-                            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-60" />
-                            <span className="relative inline-flex h-2 w-2 rounded-full bg-blue-500 ring-2 ring-white" />
-                        </span>
-                    )}
+                <DialogTrigger asChild>
+                    <NotificationBellTrigger unreadCount={unreadCount} />
                 </DialogTrigger>
             )}
             <DialogContent
@@ -58,6 +99,8 @@ export default function NotificationsDialog({ trigger, notifications: controlled
             >
                 <NotificationsPanel
                     notifications={items}
+                    loading={!isControlled && loading}
+                    connectionStatus={connectionStatus}
                     onMarkAllRead={isControlled && !onMarkAllRead ? undefined : handleMarkAllRead}
                 />
             </DialogContent>
