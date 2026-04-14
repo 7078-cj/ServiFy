@@ -1,16 +1,17 @@
 import React from "react";
-import { Calendar, MessageSquare, Star, Info } from "lucide-react";
+import { Calendar, MessageSquare, Bell, Building2 } from "lucide-react";
 
 const typeConfig = {
     booking: { Icon: Calendar, iconClass: "text-blue-600 bg-blue-50" },
     message: { Icon: MessageSquare, iconClass: "text-violet-600 bg-violet-50" },
-    review: { Icon: Star, iconClass: "text-amber-600 bg-amber-50" },
-    system: { Icon: Info, iconClass: "text-gray-600 bg-gray-100" },
+    reminder: { Icon: Bell, iconClass: "text-amber-600 bg-amber-50" },
+    chat: { Icon: MessageSquare, iconClass: "text-indigo-600 bg-indigo-50" },
+    business: { Icon: Building2, iconClass: "text-emerald-600 bg-emerald-50" },
 };
 
 export default function NotificationItem({ notification }) {
     const { title, body, timeLabel, unread, type } = notification;
-    const { Icon, iconClass } = typeConfig[type] || typeConfig.system;
+    const { Icon, iconClass } = typeConfig[type] || typeConfig.reminder;
 
     return (
         <article

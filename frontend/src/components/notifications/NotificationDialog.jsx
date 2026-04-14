@@ -1,0 +1,109 @@
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
+import NotificationBellTrigger from "./NotificationBellTrigger";
+import NotificationsPanel from "./NotificationsPanel";
+import { useNotificationListener } from "../../listeners/notificationListener";
+import { fetchNotifications } from "../../api/notifications";
+
+const SUPPORTED_TYPES = new Set(["booking", "message", "reminder", "chat", "business"]);
+
+const getRelativeTimeLabel = (value) => {
+    if (!value) return "Just now";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "Just now";
+
+    const diffMs = Date.now() - date.getTime();
+    const diffMinutes = Math.floor(diffMs / 60000);
+
+    if (diffMinutes < 1) return "Just now";
+    if (diffMinutes < 60) return `${diffMinutes} min ago`;
+
+    const diffHours = Math.floor(diffMinutes / 60);
+    if (diffHours < 24) return `${diffHours} hr${diffHours === 1 ? "" : "s"} ago`;
+
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays < 7) return `${diffDays} day${diffDays === 1 ? "" : "s"} ago`;
+
+    return date.toLocaleDateString();
+};
+
+const normalizeNotifications = (payload) => {
+    const items = Array.isArray(payload) ? payload : payload?.results || [];
+
+    return items.map((item) => {
+        const type = String(item?.type || item?.notification_type || "reminder").toLowerCase();
+        const createdAt = item?.created_at || item?.createdAt || item?.timestamp || null;
+
+        return {
+            id: item?.id ?? crypto.randomUUID(),
+            type: SUPPORTED_TYPES.has(type) ? type : "reminder",
+            title: item?.title || "Notification",
+            body: item?.body || item?.message || item?.description || "",
+            timeLabel: getRelativeTimeLabel(createdAt),
+            unread: item?.unread ?? !(item?.read ?? true),
+            createdAt,
+        };
+    });
+};
+
+export default function NotificationDialog({ trigger, notifications: controlled, onMarkAllRead }) {
+    const currentUserId = JSON.parse(localStorage.getItem("user"))?.id;
+    const [internal, setInternal] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    const isControlled = controlled != null;
+    const items = isControlled ? controlled : internal;
+    const unreadCount = useMemo(() => items.filter((n) => n.unread).length, [items]);
+
+    const loadNotifications = useCallback(async () => {
+        if (!currentUserId) return;
+        setLoading(true);
+        try {
+            const res = await fetchNotifications();
+            setInternal(normalizeNotifications(res));
+        } catch (error) {
+            console.error("Failed to fetch notifications:", error);
+        } finally {
+            setLoading(false);
+        }
+    }, [currentUserId]);
+
+    useEffect(() => {
+        if (!isControlled) loadNotifications();
+    }, [isControlled, loadNotifications]);
+
+    const { connectionStatus } = useNotificationListener(currentUserId, setInternal, loadNotifications);
+
+    const handleMarkAllReadInternal = useCallback(() => {
+        setInternal((prev) => prev.map((item) => ({ ...item, unread: false })));
+    }, []);
+
+    const handleMarkAllRead = isControlled ? onMarkAllRead : handleMarkAllReadInternal;
+
+    return (
+        <Dialog>
+            {trigger ? (
+                <DialogTrigger asChild>{trigger}</DialogTrigger>
+            ) : (
+                <DialogTrigger asChild>
+                    <NotificationBellTrigger unreadCount={unreadCount} />
+                </DialogTrigger>
+            )}
+            <DialogContent
+                showCloseButton
+                className={cn(
+                    "gap-0 p-0 sm:max-w-lg",
+                    "border border-gray-200 bg-white text-gray-900 shadow-xl"
+                )}
+            >
+                <NotificationsPanel
+                    notifications={items}
+                    loading={!isControlled && loading}
+                    connectionStatus={connectionStatus}
+                    onMarkAllRead={isControlled && !onMarkAllRead ? undefined : handleMarkAllRead}
+                />
+            </DialogContent>
+        </Dialog>
+    );
+}
