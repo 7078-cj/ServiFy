@@ -8,4 +8,5 @@ websocket_urlpatterns = [
     path('ws/business_reviews/<str:business_id>/', consumers.BusinessReviewsConsumer.as_asgi()),
     path('ws/chat/<str:conversation_id>/', consumers.ChatConsumer.as_asgi()),
     path('ws/conversation/<str:user_id>/', consumers.ConversationConsumer.as_asgi()),
+    path('ws/notification/<str:user_id>/', consumers.NotificationConsumer.as_asgi()),
 ]

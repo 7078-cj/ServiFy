@@ -220,6 +220,28 @@ class ConversationConsumer(AsyncWebsocketConsumer):
             id=conversation_id,
             participants__id=self.id
         ).exists()
+        
+class NotificationConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        self.id = self.scope['url_route']['kwargs']['user_id']
+        self.group_name = f'user_{self.id}_notifications'
+
+        user = self.scope.get('user')
+        if not user or not user.is_authenticated or str(user.id) != str(self.id):
+            await self.close(code=4003)
+            return
+
+        await self.channel_layer.group_add(self.group_name, self.channel_name)
+        await self.accept()
+
+    async def disconnect(self, close_code):
+        await self.channel_layer.group_discard(self.group_name, self.channel_name)
+        
+    async def new__notification(self, event):
+        await self.send(text_data=json.dumps({
+            "type": "created",
+            "data": event['data']
+        }))
 
 
     

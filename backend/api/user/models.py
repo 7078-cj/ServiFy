@@ -61,3 +61,25 @@ class Booking(models.Model):
     def __str__(self):
         return f"{self.service} by {self.service.provider} for {self.user.username}"
     
+class Notification(models.Model):
+    TYPE_CHOICES = [
+        ("booking", "Booking"),
+        ("message", "Message"),
+        ("reminder", "Reminder"),
+        ("chat", "Chat"),
+        ("business", "Business"),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="notifications")
+    type = models.CharField(max_length=50, choices=TYPE_CHOICES, default="system")
+    title = models.CharField(max_length=255)
+    body = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    unread = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"[{self.type}] {self.title} → {self.user.username}"
+    

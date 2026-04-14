@@ -12,10 +12,10 @@ from ..rate_limit.TestThrottle import TestThrottle
 from rest_framework import status
 from .utils import generate_pin, send_reset_email_async
 from django.core.cache import cache
-from rest_framework.generics import ListAPIView, ListCreateAPIView, RetrieveUpdateDestroyAPIView, RetrieveUpdateAPIView
-from .models import Location, Booking
+from rest_framework.generics import ListAPIView, ListCreateAPIView, RetrieveUpdateDestroyAPIView, RetrieveUpdateAPIView, RetrieveDestroyAPIView
+from .models import Location, Booking, Notification
 from ..business.models import Service
-from .serializers import LocationSerializer
+from .serializers import LocationSerializer, NotificationSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import viewsets, permissions
 from ..business.utils import get_service
@@ -349,3 +349,21 @@ class UserBookingListView(ListAPIView):
             .select_related('user', 'service', 'service__business')
             .order_by('-created_at')
         )
+        
+class NotificationListCreateView(ListCreateAPIView):
+    serializer_class = NotificationSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Notification.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class NotificationRetrieveDestroyView(RetrieveDestroyAPIView):
+    serializer_class = NotificationSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Notification.objects.filter(user=self.request.user)
