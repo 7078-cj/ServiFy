@@ -6,7 +6,7 @@ import NotificationsPanel from "./NotificationsPanel";
 import { useNotificationListener } from "../../listeners/notificationListener";
 import { fetchNotifications } from "../../api/notifications";
 
-const SUPPORTED_TYPES = new Set(["booking", "message", "review", "system"]);
+const SUPPORTED_TYPES = new Set(["booking", "message", "review", "system", "business"]);
 
 const getRelativeTimeLabel = (value) => {
     if (!value) return "Just now";
@@ -29,7 +29,12 @@ const getRelativeTimeLabel = (value) => {
 };
 
 const normalizeNotifications = (payload) => {
-    const items = Array.isArray(payload) ? payload : payload?.results || [];
+    
+    const items = Array.isArray(payload)
+        ? payload
+        : payload?.results
+        ? payload.results
+        : [payload]; 
 
     return items.map((item) => {
         const type = String(item?.type || item?.notification_type || "system").toLowerCase();
@@ -73,7 +78,7 @@ export default function NotificationDialog({ trigger, notifications: controlled,
         if (!isControlled) loadNotifications();
     }, [isControlled, loadNotifications]);
 
-    const { connectionStatus } = useNotificationListener(currentUserId, setInternal, loadNotifications);
+    const { connectionStatus } = useNotificationListener(currentUserId, setInternal, loadNotifications, normalizeNotifications);
 
     const handleMarkAllReadInternal = useCallback(() => {
         setInternal((prev) => prev.map((item) => ({ ...item, unread: false })));

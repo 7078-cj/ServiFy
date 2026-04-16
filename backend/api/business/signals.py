@@ -5,6 +5,7 @@ from .utils import _remove_file
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from .serializers import ReviewSerializer
+from  ..user.utils import broadcast_notification
 
 channel_layer = get_channel_layer()
 
@@ -65,7 +66,7 @@ def delete_old_service_thumbnail(sender, instance, **kwargs):
 @receiver(post_save, sender=Review)
 def review_updated(sender, instance, created, **kwargs):
     instance = Review.objects.select_related(
-        "author", "business"
+        "author", "business", "business__owner"
     ).get(pk=instance.pk)
 
     serializer = ReviewSerializer(instance)
@@ -81,7 +82,6 @@ def review_updated(sender, instance, created, **kwargs):
     )
 
     if created:
-
         async_to_sync(channel_layer.group_send)(
             f'business_reviews_{instance.business.id}',
             {
@@ -89,6 +89,22 @@ def review_updated(sender, instance, created, **kwargs):
                 "data": data
             }
         )
+
+        owner = instance.business.owner
+        author_name = (
+            f"{instance.author.first_name} {instance.author.last_name}".strip()
+            or instance.author.username
+        )
+
+        body_message = (
+            f"{author_name} rated your business {instance.business.name} "
+            f"{instance.rate}⭐"
+        )
+
+        broadcast_notification( owner,
+                                "business", 
+                                f"New Review Received", 
+                                body_message)
         
 @receiver(post_delete, sender=Review)
 def review_deleted(sender, instance, **kwargs):

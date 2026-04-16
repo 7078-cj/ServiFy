@@ -1,7 +1,7 @@
 import useWebSocket from '../hooks/useWebsocket'
 import { handleMessage } from './utils/listenerUtils'
 
-export function useNotificationListener(userId, set, onRefresh) {
+export function useNotificationListener(userId, set, onRefresh, normalize) {
     return useWebSocket(
         `ws/notification/${userId}/`,
         {

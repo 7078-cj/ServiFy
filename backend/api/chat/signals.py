@@ -6,6 +6,8 @@ from channels.layers import get_channel_layer
 from .models import Conversation, Message
 from ..business.utils import _remove_file
 from .serializers import MessageSerializer, ConversationSerializer
+from  ..user.models import Notification
+from  ..user.utils import broadcast_notification
 
 @receiver(post_save, sender=Conversation)
 def conversation_created(sender, instance, created, **kwargs):
@@ -48,9 +50,10 @@ def conversation_deleted(sender, instance, **kwargs):
 def message_created(sender, instance, created, **kwargs):
     instance = Message.objects.select_related("sender", "conversation").get(pk=instance.pk)
     data = MessageSerializer(instance).data
+    channel_layer = get_channel_layer()
+    conversation_id = instance.conversation.id
+
     if created:
-        channel_layer = get_channel_layer()
-        conversation_id = instance.conversation.id
         async_to_sync(channel_layer.group_send)(
             f"conversation_{conversation_id}",
             {
@@ -58,9 +61,30 @@ def message_created(sender, instance, created, **kwargs):
                 "data": data
             }
         )
+
+        
+        sender_user = instance.sender
+        participants = instance.conversation.participants.exclude(id=sender_user.id)
+
+        for user in participants:
+            
+            message_preview = instance.content[:50] if instance.content else "Sent an image"
+
+            body_message = (
+                f"{sender_user.first_name or sender_user.username} sent you a message: "
+                f"{message_preview}"
+            )
+
+            
+            broadcast_notification(
+                user,
+                "chat",
+                "New Message",
+                body_message
+            )
+
+
     else:
-        channel_layer = get_channel_layer()
-        conversation_id = instance.conversation.id
         async_to_sync(channel_layer.group_send)(
             f"conversation_{conversation_id}",
             {
@@ -68,7 +92,7 @@ def message_created(sender, instance, created, **kwargs):
                 "data": data
             }
         )
-
+        
 @receiver(post_delete, sender=Message)
 def message_deleted(sender, instance, **kwargs):
     _remove_file(instance.image)

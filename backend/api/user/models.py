@@ -1,8 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.utils import timezone
-from datetime import timedelta
 from ..business.models import Service
+
 
 # class Test(models.Model):
 #     name = models.CharField(max_length=30, unique=True)
@@ -59,7 +58,7 @@ class Booking(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.service} by {self.service.provider} for {self.user.username}"
+        return f"{self.service} by {self.service.business.name} for {self.user.username}"
     
 class Notification(models.Model):
     TYPE_CHOICES = [
@@ -82,4 +81,7 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"[{self.type}] {self.title} → {self.user.username}"
+    
+        
+    
     
