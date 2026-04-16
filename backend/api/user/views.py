@@ -13,6 +13,7 @@ from rest_framework import status
 from .utils import generate_pin, send_reset_email_async
 from django.core.cache import cache
 from rest_framework.generics import ListAPIView, ListCreateAPIView, RetrieveUpdateDestroyAPIView, RetrieveUpdateAPIView, RetrieveDestroyAPIView
+from rest_framework.views import APIView
 from .models import Location, Booking, Notification
 from ..business.models import Service
 from .serializers import LocationSerializer, NotificationSerializer
@@ -367,3 +368,18 @@ class NotificationRetrieveDestroyView(RetrieveDestroyAPIView):
 
     def get_queryset(self):
         return Notification.objects.filter(user=self.request.user)
+
+
+class NotificationMarkAllReadView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        updated_count = Notification.objects.filter(
+            user=request.user,
+            unread=True
+        ).update(unread=False)
+
+        return Response(
+            {"detail": f"{updated_count} notifications marked as read."},
+            status=status.HTTP_200_OK
+        )

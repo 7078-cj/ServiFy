@@ -1,5 +1,5 @@
 import React from "react";
-import { Calendar, MessageSquare, Bell, Building2 } from "lucide-react";
+import { Calendar, MessageSquare, Bell, Building2, Trash2 } from "lucide-react";
 
 const typeConfig = {
     booking: { Icon: Calendar, iconClass: "text-blue-600 bg-blue-50" },
@@ -9,7 +9,7 @@ const typeConfig = {
     business: { Icon: Building2, iconClass: "text-emerald-600 bg-emerald-50" },
 };
 
-export default function NotificationItem({ notification }) {
+export default function NotificationItem({ notification, onDelete, deleting = false }) {
     const { title, body, timeLabel, unread, type } = notification;
     const { Icon, iconClass } = typeConfig[type] || typeConfig.reminder;
 
@@ -28,9 +28,23 @@ export default function NotificationItem({ notification }) {
             <div className="min-w-0 flex-1">
                 <div className="flex items-start justify-between gap-2">
                     <h4 className="text-sm font-semibold text-gray-900 leading-snug">{title}</h4>
-                    {unread && (
-                        <span className="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-blue-500" title="Unread" />
-                    )}
+                    <div className="flex items-center gap-2">
+                        {unread && (
+                            <span className="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-blue-500" title="Unread" />
+                        )}
+                        {onDelete && (
+                            <button
+                                type="button"
+                                onClick={() => onDelete(notification.id)}
+                                disabled={deleting}
+                                className="rounded-md p-1 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-500 disabled:cursor-not-allowed disabled:text-gray-300"
+                                aria-label="Delete notification"
+                                title="Delete notification"
+                            >
+                                <Trash2 size={14} />
+                            </button>
+                        )}
+                    </div>
                 </div>
                 <p className="mt-1 text-xs text-gray-600 leading-relaxed">{body}</p>
                 <p className="mt-2 text-[11px] font-medium uppercase tracking-wide text-gray-400">

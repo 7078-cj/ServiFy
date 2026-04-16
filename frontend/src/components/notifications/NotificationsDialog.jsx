@@ -4,9 +4,13 @@ import { cn } from "@/lib/utils";
 import NotificationBellTrigger from "./NotificationBellTrigger";
 import NotificationsPanel from "./NotificationsPanel";
 import { useNotificationListener } from "../../listeners/notificationListener";
-import { fetchNotifications } from "../../api/notifications";
+import {
+    deleteNotification,
+    fetchNotifications,
+    markAllNotificationsRead,
+} from "../../api/notifications";
 
-const SUPPORTED_TYPES = new Set(["booking", "message", "review", "system", "business"]);
+const SUPPORTED_TYPES = new Set(["booking", "message", "review", "reminder", "chat", "system", "business"]);
 
 const getRelativeTimeLabel = (value) => {
     if (!value) return "Just now";
@@ -29,12 +33,15 @@ const getRelativeTimeLabel = (value) => {
 };
 
 const normalizeNotifications = (payload) => {
-    
     const items = Array.isArray(payload)
         ? payload
         : payload?.results
-        ? payload.results
-        : [payload]; 
+            ? payload.results
+            : payload?.data
+                ? [payload.data]
+                : payload
+                    ? [payload]
+                    : [];
 
     return items.map((item) => {
         const type = String(item?.type || item?.notification_type || "system").toLowerCase();
@@ -45,7 +52,7 @@ const normalizeNotifications = (payload) => {
             type: SUPPORTED_TYPES.has(type) ? type : "system",
             title: item?.title || "Notification",
             body: item?.body || item?.message || item?.description || "",
-            timeLabel: getRelativeTimeLabel(createdAt),
+            timeLabel: item?.time_label || getRelativeTimeLabel(createdAt),
             unread: item?.unread ?? !(item?.read ?? true),
             createdAt,
         };
@@ -56,6 +63,8 @@ export default function NotificationDialog({ trigger, notifications: controlled,
     const currentUserId = JSON.parse(localStorage.getItem("user"))?.id;
     const [internal, setInternal] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [markingAllRead, setMarkingAllRead] = useState(false);
+    const [deletingIds, setDeletingIds] = useState([]);
 
     const isControlled = controlled != null;
     const items = isControlled ? controlled : internal;
@@ -81,8 +90,30 @@ export default function NotificationDialog({ trigger, notifications: controlled,
     const { connectionStatus } = useNotificationListener(currentUserId, setInternal, loadNotifications, normalizeNotifications);
 
     const handleMarkAllReadInternal = useCallback(() => {
+        setMarkingAllRead(true);
         setInternal((prev) => prev.map((item) => ({ ...item, unread: false })));
-    }, []);
+        markAllNotificationsRead().catch((error) => {
+            console.error("Failed to mark all notifications as read:", error);
+            loadNotifications();
+        }).finally(() => {
+            setMarkingAllRead(false);
+        });
+    }, [loadNotifications]);
+
+    const handleDeleteNotification = useCallback(async (notificationId) => {
+        if (!notificationId) return;
+        setDeletingIds((prev) => (prev.includes(notificationId) ? prev : [...prev, notificationId]));
+        setInternal((prev) => prev.filter((item) => item.id !== notificationId));
+
+        try {
+            await deleteNotification(notificationId);
+        } catch (error) {
+            console.error("Failed to delete notification:", error);
+            loadNotifications();
+        } finally {
+            setDeletingIds((prev) => prev.filter((id) => id !== notificationId));
+        }
+    }, [loadNotifications]);
 
     const handleMarkAllRead = isControlled ? onMarkAllRead : handleMarkAllReadInternal;
 
@@ -105,7 +136,10 @@ export default function NotificationDialog({ trigger, notifications: controlled,
                 <NotificationsPanel
                     notifications={items}
                     loading={!isControlled && loading}
+                    deletingIds={deletingIds}
+                    markingAllRead={markingAllRead}
                     connectionStatus={connectionStatus}
+                    onDeleteNotification={isControlled ? undefined : handleDeleteNotification}
                     onMarkAllRead={isControlled && !onMarkAllRead ? undefined : handleMarkAllRead}
                 />
             </DialogContent>

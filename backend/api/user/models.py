@@ -56,6 +56,9 @@ class Booking(models.Model):
     longitude = models.DecimalField(max_digits=9, decimal_places=6, default=0.0)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
     created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ["-created_at"]
 
     def __str__(self):
         return f"{self.service} by {self.service.business.name} for {self.user.username}"

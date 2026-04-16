@@ -10,7 +10,7 @@ export function chatListener(conversationId, set, onRefresh) {
             onRefresh,
             onClose: () => console.log("Disconnected from chat"),
             onMessage: (data) => {
-                handleMessage(data, set)
+                handleMessage(data, set, { appendCreated: true })
                 if (data.type === 'created') {
                     markMessagesRead(conversationId).catch(err => console.error("Mark read error:", err))
                 }

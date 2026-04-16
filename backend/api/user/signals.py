@@ -50,11 +50,11 @@ def booking_updated(sender, instance, created, **kwargs):
         instance.status,
         f"Your booking status has been updated to {instance.status}."
     )
-
-    broadcast_notification( instance.user,
-                            "booking", 
-                            f"Booking {instance.status.capitalize()}", 
-                            body_message)
+    if instance.status != "cancelled":
+        broadcast_notification( instance.user,
+                                "booking", 
+                                f"Booking {instance.status.capitalize()}", 
+                                body_message)
 
 
 
@@ -90,3 +90,7 @@ def booking_updated(sender, instance, created, **kwargs):
                 "data": data
             }
         )
+        broadcast_notification( instance.user,
+                        "booking", 
+                        f"Booking {instance.status.capitalize()}", 
+                        "Your booking has been cancelled.")

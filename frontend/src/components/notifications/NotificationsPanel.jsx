@@ -5,7 +5,10 @@ import NotificationItem from "./NotificationItem";
 export default function NotificationsPanel({
     notifications,
     onMarkAllRead,
+    onDeleteNotification,
     loading = false,
+    deletingIds = [],
+    markingAllRead = false,
     connectionStatus = "disconnected",
 }) {
     const hasUnread = notifications.some((n) => n.unread);
@@ -47,7 +50,11 @@ export default function NotificationsPanel({
                     <ul className="flex flex-col gap-0.5">
                         {notifications.map((n) => (
                             <li key={n.id}>
-                                <NotificationItem notification={n} />
+                                <NotificationItem
+                                    notification={n}
+                                    onDelete={onDeleteNotification}
+                                    deleting={deletingIds.includes(n.id)}
+                                />
                             </li>
                         ))}
                     </ul>
@@ -58,11 +65,11 @@ export default function NotificationsPanel({
                 <div className="shrink-0 border-t border-gray-100 px-4 py-3">
                     <button
                         type="button"
-                        disabled={!hasUnread}
+                        disabled={!hasUnread || markingAllRead}
                         onClick={onMarkAllRead}
                         className="w-full rounded-lg py-2 text-xs font-semibold text-blue-600 transition-colors hover:bg-blue-50 disabled:cursor-not-allowed disabled:text-gray-400 disabled:hover:bg-transparent"
                     >
-                        Mark all as read
+                        {markingAllRead ? "Marking all as read..." : "Mark all as read"}
                     </button>
                 </div>
             )}

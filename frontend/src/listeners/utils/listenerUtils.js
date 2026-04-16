@@ -1,4 +1,5 @@
-export function handleMessage(message, set) {
+export function handleMessage(message, set, options = {}) {
+    const { appendCreated = false } = options;
 
     const { type, data } = message
 
@@ -8,7 +9,7 @@ export function handleMessage(message, set) {
             if (exists) {
                 return prev.map((item) => (item.id === data.id ? data : item))
             }
-            return [...prev, data]
+            return appendCreated ? [...prev, data] : [data, ...prev]
         })
 
     } else if (type === "updated") {

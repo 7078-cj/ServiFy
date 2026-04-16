@@ -18,7 +18,8 @@ from .views import (AllBusinessBookingListView, BusinessBookingListView, UserBoo
                     BookingDetailView,
                     BookingCancelView,
                     NotificationListCreateView,
-                    NotificationRetrieveDestroyView)
+                    NotificationRetrieveDestroyView,
+                    NotificationMarkAllReadView)
 
 
 urlpatterns = [
@@ -64,6 +65,7 @@ urlpatterns = [
         name="business-bookings"
     ),
     path("bookings/<int:pk>/cancel/", BookingCancelView.as_view(), name="booking-cancel"),
+    path("notifications/mark-all-read/", NotificationMarkAllReadView.as_view(), name="notification-mark-all-read"),
     path("notifications/", NotificationListCreateView.as_view(), name="notification-list-create"),
     path("notifications/<int:pk>/", NotificationRetrieveDestroyView.as_view(), name="notification-detail-destroy"),
     
