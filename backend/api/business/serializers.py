@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from ..user.serializers import UserSerializer
-from .models import Portfolio, Review, Business, Service
+from .models import Portfolio, Review, Business, Service, Category
+from django.utils.text import slugify
 from django.db.models import Avg, Min, Max
 from ..user.serializers import BookingSerializer
 
@@ -53,6 +54,15 @@ class BusinessSerializer(serializers.ModelSerializer):
     reviews = ReviewSerializer(many=True, read_only=True, source='review')
     portfolio = PortfolioSerializer(many=True, read_only=True)
     services = ServiceSerializer(many=True, read_only=True)
+
+    categories = serializers.ListField(
+        child=serializers.CharField(),
+        write_only=True,
+        required=False
+    )
+
+    category_details = serializers.SerializerMethodField()
+
     average_rating = serializers.SerializerMethodField()
     average_price = serializers.SerializerMethodField()
     min_price = serializers.SerializerMethodField()
@@ -63,6 +73,10 @@ class BusinessSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'owner', 'logo', 'name', 'description',
             'address', 'latitude', 'longitude',
+
+            'categories',
+            'category_details',
+
             'reviews', 'portfolio', 'services',
             'average_rating', 'average_price',
             'min_price', 'max_price',
@@ -88,3 +102,57 @@ class BusinessSerializer(serializers.ModelSerializer):
         result = obj.services.aggregate(max=Max('price'))
         max_val = result['max']
         return round(max_val, 2) if max_val is not None else None
+    
+    def validate_categories(self, value):
+        if not isinstance(value, list):
+            raise serializers.ValidationError("Categories must be a list.")
+
+        cleaned = []
+        for name in value:
+            if not isinstance(name, str) or not name.strip():
+                raise serializers.ValidationError("Invalid category name.")
+            cleaned.append(name.strip().lower())
+
+        return cleaned
+    
+    def create(self, validated_data):
+        categories_data = validated_data.pop("categories", [])
+        business = Business.objects.create(**validated_data)
+
+        self._handle_categories(business, categories_data)
+        return business
+
+
+    def update(self, instance, validated_data):
+        categories_data = validated_data.pop("categories", None)
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        if categories_data is not None:
+            instance.categories.clear()
+            self._handle_categories(instance, categories_data)
+
+        return instance
+    
+    def _handle_categories(self, business, categories):
+        for name in categories:
+            slug = slugify(name)
+
+            category, _ = Category.objects.get_or_create(
+                slug=slug,
+                defaults={"name": name}
+            )
+
+            business.categories.add(category)
+            
+    def get_category_details(self, obj):
+        return [
+            {
+                "id": cat.id,
+                "name": cat.name,
+                "slug": cat.slug
+            }
+            for cat in obj.categories.all()
+        ]

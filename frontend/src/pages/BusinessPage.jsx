@@ -95,6 +95,7 @@ export default function BusinessPage() {
         longitude,
         logo,
         name,
+        category_details,
     } = business
 
     const hasAbout = !!description
@@ -119,12 +120,24 @@ export default function BusinessPage() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div className="flex flex-col lg:flex-row gap-6 items-start">
 
-                    {/* LEFT — sticky business info */}
                     <div className="w-full lg:w-[420px] flex-shrink-0 lg:sticky lg:top-8 space-y-4">
                         <BusinessHeader
                             business={business}
                             setBusinessModalOpen={setBusinessModalOpen}
                         />
+
+                        {category_details?.length > 0 && (
+                            <div className="flex flex-wrap gap-2">
+                                {category_details.map((cat) => (
+                                    <span
+                                        key={cat.id}
+                                        className="text-md font-serif font-semibold bg-blue-50 text-blue-600 px-3 py-1 rounded-full"
+                                    >
+                                        {cat.name}
+                                    </span>
+                                ))}
+                            </div>
+                        )}
 
                         {(hasAbout || hasPricing) && (
                             <div className="space-y-4">
@@ -166,10 +179,8 @@ export default function BusinessPage() {
                         </div>
                     </div>
 
-                    {/* RIGHT — services & reviews */}
                     <div className="flex-1">
 
-                        {/* Services — compact, demoted */}
                         <div className="flex items-center justify-between w-full mb-2">
                             <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Services</h2>
                             {isOwner && (
@@ -181,7 +192,7 @@ export default function BusinessPage() {
                         </div>
 
                         {services?.length ? (
-                            <div className="overflow-y-auto max-h-[calc(100vh-16rem)] mb-5 [&>div]:!shadow-none [&>div]:!border-0 [&>div]:!bg-transparent [&>div]:!p-0">
+                            <div className="overflow-y-auto max-h-[calc(100vh-16rem)] mb-5">
                                 <ServicesList
                                     services={services}
                                     owner={business.owner}
@@ -201,7 +212,6 @@ export default function BusinessPage() {
                             </div>
                         )}
 
-                        {/* Reviews — emphasized, scrollable */}
                         <div>
                             <h2 className="text-lg font-semibold text-gray-900 mb-3">User Reviews</h2>
                             <div className="overflow-y-auto max-h-[calc(100vh-16rem)] pr-1">

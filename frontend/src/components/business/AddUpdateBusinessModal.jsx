@@ -29,14 +29,19 @@ export default function AddUpdateBusinessModal({
         latitude: "",
         longitude: "",
         address: "",
+        categories: [],
     });
 
+    const [categoryInput, setCategoryInput] = useState("");
     const [logoPreview, setLogoPreview] = useState(null);
     const [locationModalOpen, setLocationModalOpen] = useState(false);
     const [saving, setSaving] = useState(false);
 
     useEffect(() => {
         if (open) {
+            const existingCategories =
+                business?.category_details?.map((c) => c.name) || [];
+
             setFormData({
                 name: business?.name || "",
                 description: business?.description || "",
@@ -44,7 +49,10 @@ export default function AddUpdateBusinessModal({
                 latitude: business?.latitude || "",
                 longitude: business?.longitude || "",
                 address: business?.address || "",
+                categories: existingCategories,
             });
+
+            // setCategoryInput(existingCategories.join(" "));
 
             setLogoPreview(
                 business?.logo ? media_url + business.logo : null
@@ -78,10 +86,40 @@ export default function AddUpdateBusinessModal({
         }
     };
 
-    // ✅ Handle map selection (clean + formatted)
+    const handleCategoryKeyDown = (e) => {
+        if (e.key === " " || e.key === "Enter" || e.key === ",") {
+            e.preventDefault();
+            const value = categoryInput.trim();
+
+            if (!value) return;
+
+            if (!formData.categories.includes(value)) {
+                setFormData((prev) => ({
+                    ...prev,
+                    categories: [...prev.categories, value],
+                }));
+            }
+
+            setCategoryInput("");
+        }
+
+        if (e.key === "Backspace" && !categoryInput) {
+            setFormData((prev) => ({
+                ...prev,
+                categories: prev.categories.slice(0, -1),
+            }));
+        }
+    };
+
+    const removeCategory = (cat) => {
+        setFormData((prev) => ({
+            ...prev,
+            categories: prev.categories.filter((c) => c !== cat),
+        }));
+    };
+
     const handleLocationSelect = (loc) => {
-        const format = (val) =>
-            val ? parseFloat(val).toFixed(6) : "";
+        const format = (val) => (val ? parseFloat(val).toFixed(6) : "");
 
         setFormData((prev) => ({
             ...prev,
@@ -97,6 +135,7 @@ export default function AddUpdateBusinessModal({
             latitude: formData.latitude,
             longitude: formData.longitude,
         });
+
         if (!valid) {
             toast.error(errors.name || errors.location);
             return;
@@ -108,6 +147,7 @@ export default function AddUpdateBusinessModal({
             address: formData.address,
             latitude: formData.latitude,
             longitude: formData.longitude,
+            categories: formData.categories,
         };
 
         if (formData.logo) {
@@ -116,6 +156,7 @@ export default function AddUpdateBusinessModal({
 
         const formDataObj = createFormData(payload);
         setSaving(true);
+
         try {
             await onSave?.(formDataObj);
             toast.success(business ? "Business updated." : "Business created.");
@@ -126,7 +167,9 @@ export default function AddUpdateBusinessModal({
                 latitude: "",
                 longitude: "",
                 address: "",
+                categories: [],
             });
+            setCategoryInput("");
             setLogoPreview(null);
         } catch (e) {
             toast.error(e?.message || "Could not save business.");
@@ -148,7 +191,6 @@ export default function AddUpdateBusinessModal({
                     </DialogHeader>
 
                     <div className="space-y-5">
-                        {/* 🔵 LOGO */}
                         <div className="flex flex-col items-center gap-3">
                             {logoPreview ? (
                                 <img
@@ -162,40 +204,44 @@ export default function AddUpdateBusinessModal({
                                 </div>
                             )}
 
-                            <Input
-                                type="file"
-                                name="logo"
-                                accept="image/*"
-                                onChange={handleChange}
-                                className="text-sm"
-                            />
+                            <Input type="file" name="logo" accept="image/*" onChange={handleChange} />
                         </div>
 
-                        {/* 🔵 NAME */}
                         <div>
                             <Label>Business Name</Label>
-                            <Input
-                                name="name"
-                                value={formData.name}
-                                onChange={handleChange}
-                            />
+                            <Input name="name" value={formData.name} onChange={handleChange} />
                         </div>
 
-                        {/* 🔵 DESCRIPTION */}
                         <div>
                             <Label>Description</Label>
-                            <Input
-                                name="description"
-                                value={formData.description}
-                                onChange={handleChange}
-                            />
+                            <Input name="description" value={formData.description} onChange={handleChange} />
                         </div>
 
-                        {/* 🗺️ LOCATION SECTION */}
+                        <div>
+                            <Label>Categories</Label>
+                            <div className="flex flex-wrap gap-2 p-2 border rounded-xl">
+                                {formData.categories.map((cat) => (
+                                    <span
+                                        key={cat}
+                                        className="flex items-center gap-1 bg-blue-100 text-blue-600 px-2 py-1 rounded-full text-xs"
+                                    >
+                                        {cat}
+                                        <button onClick={() => removeCategory(cat)}>×</button>
+                                    </span>
+                                ))}
+                                <input
+                                    className="flex-1 outline-none text-sm"
+                                    value={categoryInput}
+                                    onChange={(e) => setCategoryInput(e.target.value)}
+                                    onKeyDown={handleCategoryKeyDown}
+                                    placeholder="Type and press space..."
+                                />
+                            </div>
+                        </div>
+
                         <div className="space-y-3">
                             <Label>Location</Label>
 
-                            {/* ✅ LOCATION DISPLAY CARD */}
                             <div className="rounded-xl border p-3 bg-gray-50 shadow-sm">
                                 {hasLocation ? (
                                     <>
@@ -213,17 +259,12 @@ export default function AddUpdateBusinessModal({
                                 )}
                             </div>
 
-                            {/* ✅ IMPROVED BUTTON */}
                             <Button
                                 type="button"
                                 onClick={() => setLocationModalOpen(true)}
-                                className="w-full flex items-center justify-center gap-2 text-white font-semibold rounded-lg shadow-md hover:scale-[1.02] transition"
-                                style={{
-                                    background:
-                                        "linear-gradient(90deg, #0f6e84, #3182ce)",
-                                }}
+                                className="w-full text-white"
                             >
-                                🗺️ {hasLocation ? "Change Location" : "Pick Location on Map"}
+                                {hasLocation ? "Change Location" : "Pick Location"}
                             </Button>
                         </div>
                     </div>
@@ -237,10 +278,10 @@ export default function AddUpdateBusinessModal({
                             type="button"
                             onClick={handleSave}
                             disabled={saving || !formData.name || !hasLocation}
-                            className={`px-4 py-2 rounded-md text-white font-semibold transition ${
+                            className={`px-4 py-2 rounded-md text-white ${
                                 saving || !formData.name || !hasLocation
-                                    ? "bg-gray-300 cursor-not-allowed"
-                                    : "bg-gradient-to-r from-cyan-600 to-blue-500 hover:opacity-90"
+                                    ? "bg-gray-300"
+                                    : "bg-blue-500"
                             }`}
                         >
                             {saving ? "Saving…" : business ? "Update" : "Create"}
@@ -249,7 +290,6 @@ export default function AddUpdateBusinessModal({
                 </DialogContent>
             </Dialog>
 
-            {/* 🗺️ LOCATION MODAL */}
             <AddLocationModal
                 open={locationModalOpen}
                 onClose={() => setLocationModalOpen(false)}
