@@ -156,3 +156,8 @@ class BusinessSerializer(serializers.ModelSerializer):
             }
             for cat in obj.categories.all()
         ]
+        
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ['id', 'name', 'slug']

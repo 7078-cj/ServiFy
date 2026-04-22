@@ -9,6 +9,7 @@ from .views import (
     ServiceListCreateView,
     ServiceDetailView,
     businesses,
+    get_categories
 )
 
 urlpatterns = [
@@ -30,6 +31,7 @@ urlpatterns = [
     # Services
     path('businesses/<int:business_pk>/services/', ServiceListCreateView.as_view(), name='service-list-create'),
     path('businesses/<int:business_pk>/services/<int:pk>/', ServiceDetailView.as_view(), name='service-detail'),
+    path('categories/', get_categories, name='categories'),
 ]
 
 # ```

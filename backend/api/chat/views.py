@@ -158,3 +158,4 @@ def mark_messages_read(request, conversation_id):
         )
 
     return Response({"detail": "Messages marked as read."}, status=200)
+

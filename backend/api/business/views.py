@@ -2,9 +2,9 @@ from django.core.cache import cache
 from rest_framework.decorators import api_view, throttle_classes
 from rest_framework import viewsets, permissions
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
-from .serializers import BusinessSerializer, PortfolioUploadSerializer, PortfolioSerializer, ReviewSerializer, ServiceSerializer
+from .serializers import BusinessSerializer, PortfolioUploadSerializer, PortfolioSerializer, ReviewSerializer, ServiceSerializer, CategorySerializer
 from rest_framework.permissions import IsAuthenticated
-from .models import Business, Portfolio, Review, Service
+from .models import Business, Portfolio, Review, Service, Category
 from .utils import get_business
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
@@ -175,4 +175,12 @@ def businesses(request):
         .annotate(avg_rating=Avg('review__rate'))
     )
     serializer = BusinessSerializer(businesses, many=True)
+    return Response(serializer.data)
+
+
+
+@api_view(["GET"])
+def get_categories(request):
+    categories = Category.objects.all()
+    serializer = CategorySerializer(categories, many=True)
     return Response(serializer.data)
