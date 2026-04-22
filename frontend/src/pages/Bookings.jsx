@@ -3,7 +3,7 @@ import { cancelBooking, getBookings } from "../api/bookings";
 import userBookingsListener from "../listeners/userBookingsListener";
 import { useSelector } from "react-redux";
 import ConfirmDialog from "../components/ui/ConfirmDialog";
-import { normalizeBookings, formatDate, getStatusClass  } from "./BusinessBookingsDashboard";
+import { normalizeBookings, formatDate, getStatusClass  } from "../components/bookings/utils/booking";
 
 // ... normalizeBookings, formatDate, getStatusClass unchanged
 

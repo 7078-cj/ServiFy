@@ -39,7 +39,6 @@ export default function BusinessPage() {
             }
             return
         }
-
         await getBusiness(id, setBusiness, setLoading, setError)
     }, [id])
 
@@ -122,7 +121,6 @@ export default function BusinessPage() {
 
                     {/* LEFT — sticky business info */}
                     <div className="w-full lg:w-[420px] flex-shrink-0 lg:sticky lg:top-8 space-y-4">
-
                         <BusinessHeader
                             business={business}
                             setBusinessModalOpen={setBusinessModalOpen}
@@ -141,7 +139,6 @@ export default function BusinessPage() {
                             </div>
                         )}
 
-                        {/* Business location map */}
                         {hasLocation && (
                             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                                 <div className="px-4 pt-4 pb-2">
@@ -153,16 +150,12 @@ export default function BusinessPage() {
                                     <MapComponent
                                         Markers={mapMarker}
                                         userLocation={false}
-                                        location={{
-                                            lat: businessLat,
-                                            lng: businessLng,
-                                        }}
+                                        location={{ lat: businessLat, lng: businessLng }}
                                     />
                                 </div>
                             </div>
                         )}
 
-                        {/* Portfolio */}
                         <div className="[&_img]:!w-32 [&_img]:!h-32 [&_img]:!object-cover [&_.grid]:!gap-3">
                             <PortfolioGallery
                                 portfolio={portfolio}
@@ -174,53 +167,55 @@ export default function BusinessPage() {
                     </div>
 
                     {/* RIGHT — services & reviews */}
-                    <div className="flex-1 min-w-0 space-y-5">
+                    <div className="flex-1">
 
-                        <div className="flex items-center justify-between">
-                            <h2 className="text-lg font-semibold text-gray-900">Services</h2>
+                        {/* Services — compact, demoted */}
+                        <div className="flex items-center justify-between w-full mb-2">
+                            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Services</h2>
                             {isOwner && (
-                                <Button
-                                    variant="outline"
-                                    onClick={() => setServicesModalOpen(true)}
-                                >
-                                    <Plus className="mr-2" size={16} />
+                                <Button variant="outline" size="sm" onClick={() => setServicesModalOpen(true)}>
+                                    <Plus className="mr-1" size={13} />
                                     Add Service
                                 </Button>
                             )}
                         </div>
 
                         {services?.length ? (
-                            <ServicesList
-                                services={services}
-                                owner={business.owner}
-                                businessId={id}
-                                fetchBusiness={fetchBusiness}
-                            />
+                            <div className="overflow-y-auto max-h-[calc(100vh-16rem)] mb-5 [&>div]:!shadow-none [&>div]:!border-0 [&>div]:!bg-transparent [&>div]:!p-0">
+                                <ServicesList
+                                    services={services}
+                                    owner={business.owner}
+                                    businessId={id}
+                                    fetchBusiness={fetchBusiness}
+                                />
+                            </div>
                         ) : (
-                            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-10 text-center">
-                                <p className="text-sm text-gray-400">No services yet.</p>
+                            <div className="bg-gray-50 rounded-xl border border-dashed border-gray-200 py-4 px-6 text-center mb-5">
+                                <p className="text-xs text-gray-400">No services yet.</p>
                                 {isOwner && (
-                                    <Button
-                                        variant="outline"
-                                        className="mt-4"
-                                        onClick={() => setServicesModalOpen(true)}
-                                    >
-                                        <Plus className="mr-2" size={16} />
+                                    <Button variant="outline" size="sm" className="mt-2" onClick={() => setServicesModalOpen(true)}>
+                                        <Plus className="mr-1" size={13} />
                                         Add your first service
                                     </Button>
                                 )}
                             </div>
                         )}
 
-                        <ReviewsList
-                            reviews={reviews}
-                            onAddReview={handleAddReview}
-                            onUpdateReview={handleUpdateReview}
-                            onDeleteReview={handleDeleteReview}
-                            currentUser={user}
-                            businessId={id}
-                            onRefresh={() => fetchBusiness({ silent: true })}
-                        />
+                        {/* Reviews — emphasized, scrollable */}
+                        <div>
+                            <h2 className="text-lg font-semibold text-gray-900 mb-3">User Reviews</h2>
+                            <div className="overflow-y-auto max-h-[calc(100vh-16rem)] pr-1">
+                                <ReviewsList
+                                    reviews={reviews}
+                                    onAddReview={handleAddReview}
+                                    onUpdateReview={handleUpdateReview}
+                                    onDeleteReview={handleDeleteReview}
+                                    currentUser={user}
+                                    businessId={id}
+                                    onRefresh={() => fetchBusiness({ silent: true })}
+                                />
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
