@@ -65,7 +65,7 @@ export default function BusinessBookingsDashboard() {
             </div>
 
             {/* ── Right panel — sticky map ── */}
-            <div className="flex-1 h-full sticky top-0 relative">
+            <div className="flex-1 h-full top-0 relative">
                 <MapLegend />
                 <MapComponent
                     Markers={mapMarkers}
