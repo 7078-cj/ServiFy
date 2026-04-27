@@ -173,3 +173,128 @@
         @apply hidden!;
     }
 }
+
+.fc {
+    font-family: inherit;
+}
+
+.fc-daygrid-event {
+    border-radius: 8px;
+    padding: 2px 4px;
+    font-size: 12px;
+}
+
+/* Core Event Styling */
+.calendar-custom-style .fc-event {
+    border: 1px solid transparent !important;
+    padding: 2px 4px !important;
+    border-radius: 6px !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin: 1px 0;
+}
+
+/* Status: Pending (Amber) */
+.calendar-event-pending {
+    background-color: #fffbeb !important; /* amber-50 */
+    color: #b45309 !important;            /* amber-700 */
+    border-color: #fef3c7 !important;     /* amber-100 */
+}
+
+/* Status: Approved (Green) */
+.calendar-event-approved {
+    background-color: #f0fdf4 !important; /* green-50 */
+    color: #15803d !important;            /* green-700 */
+    border-color: #dcfce7 !important;     /* green-100 */
+}
+
+/* Status: Completed (Blue) */
+.calendar-event-completed {
+    background-color: #eff6ff !important; /* blue-50 */
+    color: #1d4ed8 !important;            /* blue-700 */
+    border-color: #dbeafe !important;     /* blue-100 */
+}
+
+/* Status: Rejected (Red) */
+.calendar-event-rejected {
+    background-color: #fef2f2 !important; /* red-50 */
+    color: #b91c1c !important;            /* red-700 */
+    border-color: #fee2e2 !important;     /* red-100 */
+}
+
+/* Status: Cancelled (Slate) */
+.calendar-event-cancelled {
+    background-color: #f8fafc !important; /* slate-50 */
+    color: #475569 !important;            /* slate-600 */
+    border-color: #f1f5f9 !important;     /* slate-100 */
+    opacity: 0.7;
+    text-decoration: line-through;
+}
+
+/* FullCalendar Specific Fixes */
+.fc-event-main {
+    color: inherit !important; /* Forces title to use the status color */
+}
+
+.fc-daygrid-event-dot {
+    display: none; /* Hides the default blue dot if you want the whole bar colored */
+}
+
+.calendar-custom-style .fc-daygrid-event {
+    background: transparent !important;
+    border: none !important;
+}
+
+/* Custom indicator dot before the text */
+.calendar-custom-style .fc-event-title::before {
+    content: '●';
+    margin-right: 6px;
+    font-size: 10px;
+    vertical-align: middle;
+}
+
+.calendar-event-pending .fc-event-title::before   { color: #f59e0b; }
+.calendar-event-approved .fc-event-title::before  { color: #22c55e; }
+.calendar-event-cancelled .fc-event-title::before { color: #ef4444; }
+.calendar-event-completed .fc-event-title::before { color: #3b82f6; }
+
+/* Pending - Amber Dot */
+.calendar-event-pending .fc-daygrid-event-dot {
+    border-color: #f59e0b !important;
+}
+
+/* Approved - Green Dot */
+.calendar-event-approved .fc-daygrid-event-dot {
+    border-color: #22c55e !important;
+}
+
+/* Completed - Blue Dot */
+.calendar-event-completed .fc-daygrid-event-dot {
+    border-color: #3b82f6 !important;
+}
+
+/* Rejected - Red Dot */
+.calendar-event-rejected .fc-daygrid-event-dot {
+    border-color: #ef4444 !important;
+}
+
+/* Cancelled - Slate/Grey Dot */
+.calendar-event-cancelled .fc-daygrid-event-dot {
+    border-color: #94a3b8 !important;
+}
+
+/* This colors the entire event background and text */
+.calendar-event-cancelled {
+    background-color: #fee2e2 !important; /* Light red for cancelled */
+    border: none !important;
+}
+
+.calendar-event-cancelled .fc-event-title,
+.calendar-event-cancelled .fc-event-time {
+    color: #b91c1c !important; /* Dark red text */
+    font-weight: bold;
+}
+
+/* Repeat similar logic for approved (green), pending (amber), etc. */

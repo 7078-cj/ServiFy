@@ -2,11 +2,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { getAllBusinessBookings, updateBooking } from "../../api/bookings";
 import businessBookingsListener from "../../listeners/businessBookingsListener";
-import BookingsHeader from "./BookingsHeader";
-import StatusFilterBar from "./StatusFilterBar";
-import BookingList from "./BookingList";
-import MapLegend from "./MapLegend";
-import MapComponent from "../map/MapComponent";
 import {
     normalizeBookings,
     getBookingCoordinates,
@@ -77,10 +72,10 @@ const buildRouteSources = (filteredBookings) =>
 
 export default function useBusinessBookings() {
     const [rawBookings, setRawBookings] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [updatingId, setUpdatingId] = useState(null);
-    const [selectedStatus, setSelectedStatus] = useState("all");
-    const [focusedBookingId, setFocusedBookingId] = useState(null);
+    const [loading,     setLoading]     = useState(false);
+    const [updatingId,  setUpdatingId]  = useState(null);
+    const [selectedStatus,    setSelectedStatus]    = useState("all");
+    const [focusedBookingId,  setFocusedBookingId]  = useState(null);
     const mapRef = useRef(null);
 
     const { profile } = useSelector((state) => state.profile);
@@ -101,7 +96,7 @@ export default function useBusinessBookings() {
         return bookings.filter((b) => getBookingStatus(b) === selectedStatus);
     }, [bookings, selectedStatus]);
 
-    const mapMarkers = useMemo(() => buildMapMarkers(filteredBookings), [filteredBookings]);
+    const mapMarkers   = useMemo(() => buildMapMarkers(filteredBookings),   [filteredBookings]);
     const routeSources = useMemo(() => buildRouteSources(filteredBookings), [filteredBookings]);
 
     // ── Actions ────────────────────────────────────────────────────────────
@@ -110,6 +105,15 @@ export default function useBusinessBookings() {
         await updateBooking(
             bookingId,
             { status },
+            (isLoading) => setUpdatingId(isLoading ? bookingId : null),
+            fetchBookings
+        );
+    };
+
+    const handleDateUpdate = async (bookingId, date) => {
+        await updateBooking(
+            bookingId,
+            { date },
             (isLoading) => setUpdatingId(isLoading ? bookingId : null),
             fetchBookings
         );
@@ -140,6 +144,7 @@ export default function useBusinessBookings() {
         // Actions
         setSelectedStatus,
         handleStatusUpdate,
+        handleDateUpdate,
         handleFlyTo,
     };
 }

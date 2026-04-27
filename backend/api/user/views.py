@@ -274,18 +274,41 @@ class BookingDetailView(RetrieveUpdateDestroyAPIView):
             .filter(service__business__owner=self.request.user)
             .select_related('user', 'service', 'service__business')
         )
-    
+
     def perform_update(self, serializer):
         booking = self.get_object()
-        new_status = self.request.data.get("status")
+        user = self.request.user
 
-        if new_status not in ["approved", "rejected", "completed"]:
-            raise PermissionDenied("Invalid status update")
+        if booking.service.business.owner != user:
+            raise PermissionDenied("Not allowed")
 
-        if booking.service.business.owner != self.request.user:
-            raise PermissionDenied("Only the business owner can update the booking status")
+        data = self.request.data
+        new_status = data.get("status")
+        new_date = data.get("date")
 
-        serializer.save(status=new_status, partial=True)
+        allowed_status_transitions = {
+            "pending": ["approved", "rejected"],
+            "approved": ["completed", "cancelled"],
+            "rejected": [],
+            "completed": [],
+            "cancelled": []
+        }
+
+        if new_status:
+            current_status = booking.status
+
+            if new_status not in allowed_status_transitions.get(current_status, []):
+                raise ValidationError(f"Cannot change status from {current_status} to {new_status}")
+
+        if new_date:
+            if booking.status in ["completed", "cancelled"]:
+                raise ValidationError("Cannot reschedule a completed or cancelled booking")
+
+        serializer.save(
+            status=new_status if new_status else booking.status,
+            date=new_date if new_date else booking.date,
+            partial= True
+        )
         
 class BookingCancelView(RetrieveUpdateAPIView):
     serializer_class = BookingSerializer
