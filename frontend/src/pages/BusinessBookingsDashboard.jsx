@@ -66,7 +66,7 @@ export default function BusinessBookingsDashboard() {
                 >
                     <div className="flex flex-1 min-h-0 overflow-hidden">
                         {/* Sidebar */}
-                        <aside className="w-[380px] flex-shrink-0 flex flex-col bg-white border-r border-slate-200 overflow-hidden">
+                        <aside className="w-[480px] flex-shrink-0 flex flex-col bg-white border-r border-slate-200 overflow-hidden">
                             <div className="px-4 pt-3 flex-shrink-0">
                                 <StatusFilterBar
                                     selected={selectedStatus}

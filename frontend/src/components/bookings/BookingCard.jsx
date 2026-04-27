@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
     getBookingStatus,
     getBookingCoordinates,
@@ -31,11 +31,28 @@ export default function BookingCard({ booking, isFocused, isUpdating, onStatusCh
     const currentStatus = getBookingStatus(booking);
     const hasCoords = !!getBookingCoordinates(booking);
     const address = getBookingAddress(booking);
+    
     const bookingDate = booking?.date || booking?.booking_date || booking?.created_at;
     const availableStatuses = ALLOWED_TRANSITIONS[currentStatus] || [];
     const canReschedule = !["completed", "cancelled", "rejected"].includes(currentStatus);
 
-    const [dateValue, setDateValue] = useState(bookingDate ? bookingDate.slice(0, 10) : "");
+    // FIXED: Convert to string before calling .replace
+    const formatForInput = (dateInput) => {
+        if (!dateInput) return "";
+        const dateStr = String(dateInput);
+        const cleanStr = dateStr.replace('Z', '').replace('T', ' ');
+        const d = new Date(cleanStr);
+        if (isNaN(d.getTime())) return "";
+        
+        const pad = (n) => String(n).padStart(2, '0');
+        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    };
+
+    const [dateValue, setDateValue] = useState(formatForInput(bookingDate));
+
+    useEffect(() => {
+        setDateValue(formatForInput(bookingDate));
+    }, [bookingDate]);
 
     return (
         <div className={`relative rounded-2xl border bg-white overflow-hidden transition-all duration-300 ${
@@ -83,14 +100,14 @@ export default function BookingCard({ booking, isFocused, isUpdating, onStatusCh
 
                 <div className="grid grid-cols-2 gap-3 pt-2">
                     <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Date</label>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Schedule</label>
                         <input
-                            type="date"
+                            type="datetime-local"
                             value={dateValue}
                             disabled={isUpdating || !canReschedule}
                             onChange={(e) => {
                                 setDateValue(e.target.value);
-                                onDateChange(booking.id, e.target.value);
+                                onDateChange(booking.id, e.target.value.replace('T', ' ') + ':00');
                             }}
                             className="w-full text-[11px] font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-blue-100 disabled:opacity-50"
                         />

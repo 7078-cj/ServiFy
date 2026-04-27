@@ -36,6 +36,33 @@ const ALLOWED_TRANSITIONS = {
 
 const media_url = import.meta.env.VITE_MEDIA_URL;
 
+const parseAsLocal = (dateInput) => {
+    if (!dateInput) return null;
+
+    // 1. Clean the string
+    let dateStr = dateInput instanceof Date 
+        ? dateInput.toISOString().replace('Z', '') 
+        : String(dateInput).replace(/[Zz]/g, '').replace('T', ' ');
+
+    // 2. Parse to a Date Object
+    const d = new Date(dateStr);
+    
+    if (isNaN(d.getTime())) {
+        const fallback = new Date(dateInput);
+        if (isNaN(fallback.getTime())) return null;
+        // Apply -8 hours to fallback: 8 * 60 * 60 * 1000
+        return new Date(fallback.getTime() - 28800000);
+    }
+
+    /** * 3. Subtract 8 hours in milliseconds.
+     * This safely handles:
+     * - AM to PM transitions
+     * - Rolling back to the previous day/month/year
+     * - Leap years
+     */
+    return new Date(d.getTime() - 28800000);
+};
+
 export default function BookingCalendar({ bookings, onStatusChange, onDateChange, onFlyTo, updatingId }) {
     const safeBookings = normalizeBookings(bookings);
     const [selectedId, setSelectedId] = useState(null);
@@ -43,17 +70,36 @@ export default function BookingCalendar({ bookings, onStatusChange, onDateChange
 
     const selectedBooking = safeBookings.find(b => b.id === selectedId);
 
-    const events = safeBookings.map((b) => ({
-        id: b.id,
-        title: `${getServiceLabel(b)} - ${getCustomerName(b)}`,
-        start: new Date(getBookingTimestamp(b)),
-        className: `calendar-event-${getBookingStatus(b)}`,
-        extendedProps: { bookingId: b.id },
-    })).filter(e => e.start);
+    // Filter out nulls to ensure items render
+    const events = safeBookings.map((b) => {
+        const startDate = parseAsLocal(getBookingTimestamp(b));
+        if (!startDate) return null;
+
+        return {
+            id: b.id,
+            title: `${getServiceLabel(b)} - ${getCustomerName(b)}`,
+            start: startDate,
+            className: `calendar-event-${getBookingStatus(b)}`,
+            extendedProps: { bookingId: b.id },
+        };
+    }).filter(Boolean);
 
     const currentStatus = selectedBooking ? getBookingStatus(selectedBooking) : null;
     const availableStatuses = currentStatus ? ALLOWED_TRANSITIONS[currentStatus] || [] : [];
     const canReschedule = !["completed", "cancelled", "rejected"].includes(currentStatus);
+
+    const formatForInput = (dateInput) => {
+        const d = parseAsLocal(dateInput);
+        if (!d) return "";
+        const pad = (n) => String(n).padStart(2, '0');
+        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    };
+
+    const handleDateChange = (bookingId, localValue) => {
+        if (!localValue) return;
+        const dbFriendly = localValue.replace('T', ' ') + ':00';
+        onDateChange(bookingId, dbFriendly);
+    };
 
     return (
         <div className="h-full bg-white rounded-3xl border border-slate-100 shadow-xl overflow-hidden calendar-custom-style">
@@ -62,6 +108,13 @@ export default function BookingCalendar({ bookings, onStatusChange, onDateChange
                 initialView="dayGridMonth"
                 height="100%"
                 events={events}
+                displayEventTime={true}
+                eventTimeFormat={{
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    meridiem: 'short',
+                    hour12: true
+                }}
                 headerToolbar={{
                     left: "prev,next today",
                     center: "title",
@@ -74,7 +127,6 @@ export default function BookingCalendar({ bookings, onStatusChange, onDateChange
                 <DialogContent className="p-0 overflow-hidden sm:max-w-[420px] rounded-[2rem] border-none shadow-2xl bg-white focus:outline-none">
                     {selectedBooking && (
                         <div className="relative flex flex-col">
-                            {/* HEADER */}
                             <div className="relative h-32 bg-slate-100">
                                 {selectedBooking.business_logo ? (
                                     <img 
@@ -97,7 +149,6 @@ export default function BookingCalendar({ bookings, onStatusChange, onDateChange
                                 </button>
                             </div>
 
-                            {/* BODY */}
                             <div className="p-6 space-y-6">
                                 <div className="space-y-1">
                                     <h2 className="text-xl font-black text-slate-900 leading-tight">{getServiceLabel(selectedBooking)}</h2>
@@ -112,16 +163,16 @@ export default function BookingCalendar({ bookings, onStatusChange, onDateChange
                                     </p>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 gap-4">
                                     <div className="space-y-1.5">
                                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
-                                            <CalendarIcon size={12} /> Date
+                                            <CalendarIcon size={12} /> Appointment Schedule
                                         </label>
                                         <input
-                                            type="date"
+                                            type="datetime-local"
                                             disabled={!canReschedule || updatingId === selectedBooking.id}
-                                            value={new Date(getBookingTimestamp(selectedBooking)).toISOString().slice(0, 10)}
-                                            onChange={(e) => onDateChange(selectedBooking.id, e.target.value)}
+                                            value={formatForInput(getBookingTimestamp(selectedBooking))}
+                                            onChange={(e) => handleDateChange(selectedBooking.id, e.target.value)}
                                             className="w-full text-xs font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 outline-none focus:ring-2 focus:ring-blue-100 disabled:opacity-50"
                                         />
                                     </div>

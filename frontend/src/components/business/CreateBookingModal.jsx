@@ -64,7 +64,7 @@ export default function CreateBookingModal({
                     {/* Date & Time */}
                     <div>
                         <label className="text-sm text-gray-600">
-                            Select Date & Time
+                            Select Date
                         </label>
                         <input
                             type="datetime-local"
