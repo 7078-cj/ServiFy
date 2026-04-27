@@ -7,6 +7,9 @@ import {
     getCustomerRole 
 } from "./utils/booking";
 
+const media_url = import.meta.env.VITE_MEDIA_URL;
+
+
 export default function UserDetailDialog({ isOpen, onClose, booking }) {
     if (!booking) return null;
 
@@ -21,9 +24,23 @@ export default function UserDetailDialog({ isOpen, onClose, booking }) {
                         <X size={18} />
                     </button>
                     <div className="flex flex-col items-center text-center gap-3">
-                        <div className="w-20 h-20 rounded-3xl bg-blue-600 flex items-center justify-center text-3xl font-black shadow-lg">
-                            {getCustomerName(booking).charAt(0)}
-                        </div>
+                        {
+                            booking.user.profile.profile_image ? (
+                                <img
+                                    src={media_url + booking.user.profile.profile_image}
+                                    alt="Profile"
+                                    className="w-20 h-20 rounded-2xl object-cover shadow-md border-4 border-white"
+                                />
+                            ):
+                            (
+                                <div className="w-20 h-20 rounded-3xl bg-blue-600 flex items-center justify-center text-3xl font-black shadow-lg">
+                                    {getCustomerName(booking).charAt(0)}
+                                </div>
+                            )
+                        }
+                        
+
+
                         <div>
                             <h2 className="text-xl font-bold tracking-tight">{getCustomerName(booking)}</h2>
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 text-[10px] font-bold uppercase tracking-widest mt-1">
