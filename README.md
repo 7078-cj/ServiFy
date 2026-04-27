@@ -1,176 +1,137 @@
 # Service Marketplace
 
-A full-stack service marketplace where users can register, browse businesses, view services, and manage bookings.  
-The project uses a React + Vite frontend and a Django REST backend with JWT authentication, optional Redis, and Celery for background work.
+Full-stack marketplace app for discovering businesses, browsing services, booking appointments, and chatting with providers.
 
-## WIP
+The project is split into:
+- `frontend/`: React + Vite client
+- `backend/`: Django REST + Channels API
 
-- Notification
-- Update of ReadMe
+## Core Features
 
-
-## Features
-
-- User authentication (register, login, refresh token)
-- Forgot password flow (request code, verify code, reset password)
-- User profile and profile update
-- Business discovery (`all_businesses`)
-- CRUD-style resource endpoints for businesses, portfolios, reviews, and services
-- Booking endpoints scoped to services
-- Protected frontend routes for authenticated pages
-- Media upload support on backend
+- JWT auth (register, login, refresh) and protected frontend routes
+- Forgot-password flow (request code, verify code, reset password, resend code)
+- Profile management and saved user locations
+- Business discovery and business profile pages
+- Nested CRUD APIs for businesses, portfolios, services, and reviews
+- Booking flows for both customers and business owners
+- Real-time updates for chat, notifications, bookings, and reviews via WebSocket
 
 ## Tech Stack
 
 ### Frontend
 
-- React 19 + Vite
-- React Router
+- React 19
+- Vite
 - Redux Toolkit + React Redux
-- Mantine UI + Tailwind CSS
+- React Router
+- Mantine UI
+- Tailwind CSS
 - MapLibre GL
+- FullCalendar
 
 ### Backend
 
 - Django + Django REST Framework
-- SimpleJWT (access/refresh tokens)
-- Django Channels (WebSocket support)
+- SimpleJWT
+- Django Channels + Daphne
 - Celery + django-celery-beat
-- Redis (optional for channels/caching/celery broker)
-- SQLite (default local database)
+- Redis (optional)
+- SQLite (default local DB)
 
-<!-- ## Project Structure
+## Project Structure
 
 ```text
 Service_Marketplace/
-|-- backend/
-|   |-- api/
-|   |   |-- business/
-|   |   |   |-- models.py
-|   |   |   |-- serializers.py
-|   |   |   |-- urls.py
-|   |   |   `-- views.py
-|   |   |-- user/
-|   |   |   |-- models.py
-|   |   |   |-- serializers.py
-|   |   |   |-- urls.py
-|   |   |   `-- views.py
-|   |   |-- urls.py
-|   |   `-- models.py
-|   |-- backend/
-|   |   |-- settings.py
-|   |   |-- urls.py
-|   |   |-- asgi.py
-|   |   `-- wsgi.py
-|   |-- websocket/
-|   |-- tasks/
-|   |-- executables/
-|   |-- media/
-|   |-- manage.py
-|   |-- requirements.txt
-|   |-- Procfile
-|   `-- .env.example
-|-- frontend/
-|   |-- src/
-|   |   |-- app/
-|   |   |-- components/
-|   |   |-- context/
-|   |   |-- features/
-|   |   |-- pages/
-|   |   |-- utils/
-|   |   |-- App.jsx
-|   |   `-- main.jsx
-|   |-- public/
-|   |-- package.json
-|   |-- vite.config.js
-|   `-- .env.example
-`-- README.md
-``` -->
-
-## Architecture Diagram
-
-```mermaid
-flowchart LR
-    A[React Frontend<br/>Vite + Redux + Router] -->|HTTP /api/*| B[Django REST API]
-    A -->|WebSocket| C[Django Channels]
-    B --> D[(SQLite)]
-    B --> E[(Media Storage)]
-    B --> F[Celery Worker]
-    F --> G[(Redis - optional)]
-    C --> G
-    B --> G
+├─ backend/
+│  ├─ api/
+│  │  ├─ business/
+│  │  ├─ chat/
+│  │  └─ user/
+│  ├─ backend/
+│  │  ├─ settings.py
+│  │  ├─ urls.py
+│  │  ├─ asgi.py
+│  │  └─ celery_app.py
+│  ├─ websocket/
+│  ├─ tasks/
+│  ├─ executables/
+│  ├─ manage.py
+│  ├─ requirements.txt
+│  ├─ Procfile
+│  └─ .env.example
+├─ frontend/
+│  ├─ src/
+│  │  ├─ api/
+│  │  ├─ components/
+│  │  ├─ features/
+│  │  ├─ hooks/
+│  │  ├─ listeners/
+│  │  ├─ pages/
+│  │  └─ utils/
+│  ├─ public/
+│  ├─ package.json
+│  ├─ vite.config.js
+│  └─ .env.example
+└─ README.md
 ```
 
-## Authentication & Protected Route Flow
+## API Overview
 
-```mermaid
-sequenceDiagram
-    participant U as User
-    participant FE as Frontend
-    participant API as Django API
+Base API path: `/api/`
 
-    U->>FE: Submit login/register
-    FE->>API: POST /api/user/token/ or /register/
-    API-->>FE: Access + Refresh tokens
-    FE->>FE: Save tokens (Redux)
-    FE->>API: Authenticated requests (Bearer token)
-    API-->>FE: Protected resource data
-    FE->>API: POST /api/user/token/refresh/ (periodic)
-    API-->>FE: New access token
-```
+- User API mounted at `/api/user/`
+  - token/login, token refresh, register
+  - forgot-password flow
+  - profile + profile update
+  - locations
+  - bookings (`my-bookings`, business bookings, booking cancel)
+  - notifications
+- Business API mounted at `/api/`
+  - `all_businesses/`
+  - `businesses/` + detail
+  - nested `portfolios`, `reviews`, `services`
+  - `categories/`
+- Chat API mounted at `/api/chat/`
+  - conversations list/create/delete
+  - message list/create/detail
+  - mark messages as read
 
-<!-- ## API Overview
+## WebSocket Endpoints
 
-Base path: `http://127.0.0.1:8000/api/`
+ASGI routes include:
 
-### User Endpoints
+- `/ws/business_bookings/<user_id>/`
+- `/ws/user_bookings/<user_id>/`
+- `/ws/business_reviews/<business_id>/`
+- `/ws/chat/<conversation_id>/`
+- `/ws/conversation/<user_id>/`
+- `/ws/notification/<user_id>/`
 
-- `POST /user/register/`
-- `POST /user/token/`
-- `POST /user/token/refresh/`
-- `POST /user/forgot-password/`
-- `POST /user/verify-code/`
-- `POST /user/reset-password/`
-- `POST /user/resend-code/`
-- `GET|POST /user/locations/`
-- `GET|PUT|DELETE /user/locations/<id>/`
-- `GET /user/profile/`
-- `PUT|PATCH /user/profile/update`
-- `GET|POST /user/services/<service_pk>/bookings/`
-- `GET|PUT|PATCH|DELETE /user/services/<service_pk>/bookings/<id>/`
-
-### Business Endpoints
-
-- `GET /all_businesses/`
-- `GET|POST /businesses/`
-- `GET|PUT|PATCH|DELETE /businesses/<id>/`
-- `GET|POST /businesses/<business_pk>/portfolios/`
-- `GET|PUT|PATCH|DELETE /businesses/<business_pk>/portfolios/<id>/`
-- `GET|POST /businesses/<business_pk>/reviews/`
-- `GET|PUT|PATCH|DELETE /businesses/<business_pk>/reviews/<id>/`
-- `GET|POST /businesses/<business_pk>/services/`
-- `GET|PUT|PATCH|DELETE /businesses/<business_pk>/services/<id>/` -->
+Frontend connects using `VITE_WS_URL` and appends `?token=<access_token>`.
 
 ## Environment Variables
 
 ### Backend (`backend/.env`)
 
-Use `backend/.env.example` as a template:
+Copy from `backend/.env.example`:
 
 - `SECRET_KEY`
 - `CORS_ALLOWED_ORIGINS`
 - `EMAIL_HOST_USER`
 - `EMAIL_HOST_PASSWORD`
-- Optional: `REDIS_HOST`, `REDIS_PORT`, `ALLOWED_HOSTS`
+- Optional:
+  - `REDIS_HOST`
+  - `REDIS_PORT`
+  - `ALLOWED_HOSTS`
 
 ### Frontend (`frontend/.env`)
 
-Use `frontend/.env.example` as a template:
+Copy from `frontend/.env.example`:
 
-- `VITE_API_URL` (example: `http://127.0.0.1:8000/api/`)
-- `VITE_WS_URL` (example: `ws://127.0.0.1:8000`)
+- `VITE_API_URL` (e.g. `http://127.0.0.1:8000/api/`)
+- `VITE_WS_URL` (e.g. `ws://127.0.0.1:8000`)
 
-## Local Setup
+## Local Development
 
 ### 1) Backend
 
@@ -183,7 +144,7 @@ python manage.py migrate
 python manage.py runserver
 ```
 
-Optional workers/services (if using Redis/Celery):
+Optional (if you run Redis/Celery worker locally):
 
 ```bash
 celery -A backend worker --loglevel=info --pool=solo
@@ -197,9 +158,21 @@ npm install
 npm run dev
 ```
 
-Frontend default dev URL: `http://localhost:5173`
+Frontend default URL: `http://localhost:5173`
 
-## Notes
+## NPM Scripts (Frontend)
 
-- Backend currently defaults to SQLite for local development.
-- If Redis is not configured, the project falls back to in-memory channel layers and eager Celery behavior.
+- `npm run dev` - start Vite dev server
+- `npm run build` - production build
+- `npm run lint` - run ESLint
+- `npm run preview` - preview production build
+
+## Runtime Notes
+
+- If Redis is configured, Channels/Celery/cache use Redis.
+- If Redis is not configured, app falls back to:
+  - in-memory Channels layer
+  - local-memory Django cache
+  - eager Celery task execution
+- `backend/executables/start_web.sh` runs migrations before `runserver`.
+- `DEBUG` is currently `True` in backend settings (dev-oriented default).
