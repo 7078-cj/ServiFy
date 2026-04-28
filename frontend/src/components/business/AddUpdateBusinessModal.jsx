@@ -262,7 +262,7 @@ export default function AddUpdateBusinessModal({
                             <Button
                                 type="button"
                                 onClick={() => setLocationModalOpen(true)}
-                                className="w-full text-white"
+                                className="w-full bg-blue-500 text-white hover:bg-blue-600"
                             >
                                 {hasLocation ? "Change Location" : "Pick Location"}
                             </Button>
